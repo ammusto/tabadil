@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { useSearch } from '../contexts/SearchContext';
 import { SearchResult } from '../types';
-import * as XLSX from 'xlsx';
+import * as XLSX from 'xlsx-js-style';
 
 const DownloadButton: React.FC = () => {
   const { results } = useSearch();
