@@ -25,68 +25,54 @@ interface OpenSearchResponse {
   };
 }
 
-interface MatchPhraseQuery {
+interface MatchQuery {
   match_phrase: {
     page_content: {
       query: string;
-      slop?: number;
-    } | string;
-  };
-}
-
-interface OpenSearchQuery {
-  from: number;
-  size: number;
-  query: {
-    bool: {
-      should: MatchPhraseQuery[];
-    };
-  };
-  sort: [
-    { uri: 'asc' }
-  ];
-  highlight: {
-    fields: {
-      page_content: {
-        number_of_fragments: number;
-        fragment_size: number;
-        pre_tags: string[];
-        post_tags: string[];
-      };
     };
   };
 }
 
-export const searchOpenSearch = async (config: SearchConfig): Promise<{ results: SearchResult[]; total: number }> => {
-  const headers = new Headers();
-  headers.append('Authorization', 'Basic ' + btoa(`${API_USER}:${API_PASS}`));
-  headers.append('Content-Type', 'application/json');
-
-  console.log('Search config:', config);
-
-  const should = config.patterns.map(pattern => ({
-    match_phrase: {
-      page_content: {
-        query: pattern,
-        slop: 5
-      }
+const createExactMatchQuery = (pattern: string): MatchQuery => ({
+  match_phrase: {
+    page_content: {
+      query: pattern
     }
-  }));
+  }
+});
 
-  const query: OpenSearchQuery = {
+const orderPatternsByLength = (patterns: string[]): string[] => {
+  return [...patterns].sort((a, b) => b.length - a.length);
+};
+
+export const searchOpenSearch = async (
+  config: SearchConfig
+): Promise<{ results: SearchResult[]; total: number }> => {
+  const headers = new Headers({
+    'Authorization': 'Basic ' + btoa(`${API_USER}:${API_PASS}`),
+    'Content-Type': 'application/json'
+  });
+
+  // Order patterns by length (longest first) and create exact match queries
+  const orderedPatterns = orderPatternsByLength(config.patterns);
+  const should = orderedPatterns.map(createExactMatchQuery);
+
+  const query: any = {
     from: config.from,
     size: config.size,
     query: {
       bool: {
-        should
+        should,
+        minimum_should_match: 1,
       }
     },
     sort: [
-      { uri: 'asc' }
+      { uri: 'asc', page_id: 'asc' }
     ],
     highlight: {
       fields: {
         page_content: {
+          type: 'fvh',
           number_of_fragments: 3,
           fragment_size: 200,
           pre_tags: ['<span class="highlight">'],
@@ -96,10 +82,23 @@ export const searchOpenSearch = async (config: SearchConfig): Promise<{ results:
     }
   };
 
+  // Add text_ids filter if present
+  if (config.selectedTexts.length > 0) {
+    if (!query.query.bool.filter) {
+      query.query.bool.filter = [];
+    }
+    query.query.bool.filter.push({
+      terms: {
+        text_id: config.selectedTexts
+      }
+    });
+  }
+
+  
   console.log('Final query:', JSON.stringify(query, null, 2));
 
   try {
-    console.log('Making request to OpenSearch API...');
+    console.log(query)
     const response = await fetch(`${API_URL}/${API_INDEX}/_search`, {
       method: 'POST',
       headers,
@@ -110,7 +109,6 @@ export const searchOpenSearch = async (config: SearchConfig): Promise<{ results:
       throw new Error(`Search failed: ${response.statusText}`);
     }
 
-    console.log('Received response from OpenSearch API');
     const data: OpenSearchResponse = await response.json();
 
     const results = data.hits.hits.map(hit => ({
@@ -121,8 +119,6 @@ export const searchOpenSearch = async (config: SearchConfig): Promise<{ results:
       uri: hit._source.uri,
       highlights: hit.highlight
     }));
-
-    console.log('Formatted results:', results);
 
     return {
       results,

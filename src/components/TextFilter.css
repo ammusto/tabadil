@@ -1,0 +1,33 @@
+.text-list-buttons-container {
+    height: 50px;
+  }
+  
+  .text-list {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-top: 1rem;
+  }
+  
+  .text-filter-input-container input[type="text"] {
+    width: 100%;
+  
+  }
+  
+  .text-list-buttons-container {
+    margin-top: 1rem;
+    display: flex;
+    width: 100%;
+    text-align: center;
+  }
+  
+  .text-list-buttons-container>div:first-child {
+    flex: 0 0 33%;
+  }
+  
+  .text-list-buttons-container>div:nth-child(2) {
+    flex: 0 0 33%;
+  }
+  
+  .text-list-buttons-container>div:nth-child(3) {
+    flex: 0 0 33%;
+  }

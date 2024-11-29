@@ -1,20 +1,76 @@
 import React, { useState, useCallback } from 'react';
 import { useSearch } from '../contexts/SearchContext';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import './SearchForm.css';
 
-const SearchForm: React.FC = () => {
-  const { performSearch, isLoading } = useSearch();
-  const [kunya, setKunya] = useState('');
-  const [nasab, setNasab] = useState('');
-  const [nisbas, setNisbas] = useState<string[]>(['']);
+interface SearchFormProps {
+  showFilters: boolean;
+  setShowFilters: React.Dispatch<React.SetStateAction<boolean>>;
+}
 
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
+const SearchForm: React.FC<SearchFormProps> = ({ showFilters, setShowFilters }) => {
+  const { searchParams, updateURLParams, setHasSearched, isLoading } = useSearch();
+  
+  const [kunyas, setKunyas] = useState<string[]>(
+    searchParams.kunyas.length > 0 ? searchParams.kunyas : ['']
+  );
+  const [nasab, setNasab] = useState(searchParams.nasab);
+  const [nisbas, setNisbas] = useState<string[]>(
+    searchParams.nisbas.length > 0 ? searchParams.nisbas : ['']
+  );
+  const [allowRareKunyaNisba, setAllowRareKunyaNisba] = useState(searchParams.allowRareKunyaNisba);
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    await performSearch(
-      kunya,
+    
+    if (!validateInputs(kunyas, nasab, nisbas, allowRareKunyaNisba)) {
+      toast.error("Please enter at least 2 of: kunya, nasab, or nisba to search");
+      return;
+    }
+
+    updateURLParams({
+      kunyas: kunyas.filter(Boolean),
       nasab,
-      nisbas.filter(Boolean)
-    );
-  }, [kunya, nasab, nisbas, performSearch]);
+      nisbas: nisbas.filter(Boolean),
+      allowRareKunyaNisba,
+      page: 1
+    });
+    setHasSearched(true)
+    setShowFilters(false);
+  };
+
+  const handleReset = useCallback(() => {
+    setKunyas(['']);
+    setNasab('');
+    setNisbas(['']);
+    setHasSearched(false)
+    setAllowRareKunyaNisba(false);
+    updateURLParams({
+      kunyas: [],
+      nasab: '',
+      nisbas: [],
+      text_ids: [],
+      page: 1,
+      allowRareKunyaNisba: false
+    });
+    setShowFilters(false);
+
+  }, [showFilters, setShowFilters, updateURLParams]);
+
+  const addKunya = useCallback(() => {
+    if (kunyas.length < 2) {
+      setKunyas(prev => [...prev, '']);
+    }
+  }, [kunyas.length]);
+
+  const updateKunya = useCallback((index: number, value: string) => {
+    setKunyas(prev => prev.map((k, i) => i === index ? value : k));
+  }, []);
+
+  const removeKunya = useCallback((index: number) => {
+    setKunyas(prev => prev.filter((_, i) => i !== index));
+  }, []);
 
   const addNisba = useCallback(() => {
     setNisbas(prev => [...prev, '']);
@@ -29,61 +85,130 @@ const SearchForm: React.FC = () => {
   }, []);
 
   return (
-    <form onSubmit={handleSubmit} className="search-form">
-      <div className="input-group">
-        <input
-          type="text"
-          value={kunya}
-          onChange={(e) => setKunya(e.target.value)}
-          placeholder="كنية (e.g., أبو منصور)"
-          className="rtl-input"
-          dir="rtl"
-        />
-      </div>
-      
-      <div className="input-group">
-        <input
-          type="text"
-          value={nasab}
-          onChange={(e) => setNasab(e.target.value)}
-          placeholder="نسب (e.g., معمر بن أحمد)"
-          className="rtl-input"
-          dir="rtl"
-        />
-      </div>
-
-      <div className="nisba-group">
-        {nisbas.map((nisba, index) => (
-          <div key={index} className="nisba-input">
-            <input
-              type="text"
-              value={nisba}
-              onChange={(e) => updateNisba(index, e.target.value)}
-              placeholder="نسبة (e.g., الاصبهاني)"
-              className="rtl-input"
-              dir="rtl"
-            />
-            {index > 0 && (
-              <button
-                type="button"
-                onClick={() => removeNisba(index)}
-                className="remove-nisba"
-              >
-                ×
-              </button>
-            )}
+    <div className='search-form-container'>
+      <form onSubmit={handleSubmit} className="search-form">
+        <div className="input-group">
+          {kunyas.map((kunya, index) => (
+            <div key={index} className="kunya-input">
+              <input
+                type="text"
+                value={kunya}
+                onChange={(e) => updateKunya(index, e.target.value)}
+                placeholder={index === 1 ? 'laqab' : 'kunya'}
+                className="rtl-input"
+                dir="rtl"
+              />
+              {index > 0 && (
+                <button
+                  type="button"
+                  onClick={() => removeKunya(index)}
+                  className="remove-kunya"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+          ))}
+          {kunyas.length < 2 && (
+            <button type="button" onClick={addKunya} className="add-kunya">
+              + Add Laqab
+            </button>
+          )}
+          <div className="form-checkbox">
+            <label>
+              <input
+                type="checkbox"
+                checked={allowRareKunyaNisba}
+                onChange={(e) => setAllowRareKunyaNisba(e.target.checked)}
+              />
+              Rare Kunya-Nisba
+            </label>
           </div>
-        ))}
-        <button type="button" onClick={addNisba} className="add-nisba">
-          + Add Nisba
-        </button>
-      </div>
+        </div>
 
-      <button type="submit" disabled={isLoading} className="search-button">
-        {isLoading ? 'Searching...' : 'Search'}
-      </button>
-    </form>
+        <div className="input-group">
+          <input
+            type="text"
+            value={nasab}
+            onChange={(e) => setNasab(e.target.value)}
+            placeholder="nasab"
+            className="rtl-input"
+            dir="rtl"
+          />
+        </div>
+
+        <div className="input-group">
+          {nisbas.map((nisba, index) => (
+            <div key={index} className="nisba-input">
+              <input
+                type="text"
+                value={nisba}
+                onChange={(e) => updateNisba(index, e.target.value)}
+                placeholder={`nisba ${index + 1}`}
+                className="rtl-input"
+                dir="rtl"
+              />
+              {index > 0 && (
+                <button
+                  type="button"
+                  onClick={() => removeNisba(index)}
+                  className="remove-nisba"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+          ))}
+          <button type="button" onClick={addNisba} className="add-nisba">
+            + Add Nisba
+          </button>
+        </div>
+        <div className="search-form-buttons">
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="search-button"
+          >
+            {isLoading ? 'Searching...' : 'Search'}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setShowFilters(!showFilters)}
+            className="filter-button"
+          >
+            {showFilters ? 'Hide Filters' : 'Show Filters'}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleReset}
+            className="reset-button"
+          >
+            Reset Search
+          </button>
+        </div>
+      </form>
+    </div>
   );
+};
+
+const validateInputs = (
+  kunyas: string[],
+  nasab: string,
+  nisbas: string[],
+  allowRare: boolean
+): boolean => {
+  const hasKunya = kunyas.some(kunya => kunya.trim().length > 0);
+  const hasNasab = nasab.trim().length > 0;
+  const hasNisba = nisbas.some(nisba => nisba.trim().length > 0);
+
+  if (allowRare && hasKunya && hasNisba) {
+    return true;
+  }
+
+  const filledInputs = [hasKunya, hasNasab, hasNisba].filter(Boolean).length;
+  return filledInputs >= 2;
 };
 
 export default SearchForm;
