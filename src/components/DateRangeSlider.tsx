@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ReactSlider from 'react-slider';
 import { useMetadata } from '../contexts/MetadataContext';
 import { useSearch } from '../contexts/SearchContext';
-
+import './DateRangeSlider.css'
 const DateRangeSlider: React.FC = () => {
   const { dateRangeCache } = useMetadata();
   const { setDateRange } = useSearch();
@@ -22,8 +22,8 @@ const DateRangeSlider: React.FC = () => {
   };
 
   return (
-    <div className="border rounded-lg bg-white p-4">
-      <h3 className="text-sm font-medium mb-4">Author Death Date Range</h3>
+    <div className="date-slider-container">
+      Author Death Date Range
       <ReactSlider
         className="horizontal-slider"
         thumbClassName="thumb"
@@ -36,9 +36,9 @@ const DateRangeSlider: React.FC = () => {
         pearling
         minDistance={10}
       />
-      <div className="flex justify-between mt-2">
-        <span className="text-sm text-gray-600">{values[0]}</span>
-        <span className="text-sm text-gray-600">{values[1]}</span>
+      <div className="center">
+        <span className="">{values[0]}</span> - 
+        <span className="">{values[1]}</span>
       </div>
     </div>
   );

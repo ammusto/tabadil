@@ -1,4 +1,6 @@
 import React, { useState, useCallback } from 'react';
+import './MultiSelect.css';
+
 
 interface Option {
   value: string;

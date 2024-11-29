@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import { MetadataProvider } from './contexts/MetadataContext';
-import { SearchProvider } from './contexts/SearchContext';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -12,9 +11,7 @@ const root = ReactDOM.createRoot(
 root.render(
   <React.StrictMode>
     <MetadataProvider>
-      <SearchProvider>
-        <App />
-      </SearchProvider>
+      <App />
     </MetadataProvider>
   </React.StrictMode>
 );

@@ -3,6 +3,7 @@ import { FixedSizeList } from 'react-window';
 import { Text } from '../types';
 import { useMetadata } from '../contexts/MetadataContext';
 import { useSearch } from '../contexts/SearchContext';
+import './TextFilter.css'
 
 const ITEM_HEIGHT = 25;
 const LIST_HEIGHT = 300;
@@ -53,13 +54,14 @@ const Row: React.FC<RowProps> = ({ index, style, data }) => {
 
 const TextFilter: React.FC = () => {
   const { texts, isLoading } = useMetadata();
-  const {
-    selectedTexts,
-    setSelectedTexts,
+  const { 
+    searchParams,
     dateRange,
     selectedCollections,
     selectedGenres,
-    resetAllFilters
+    selectedTextIds,
+    setSelectedTextIds,
+    updateURLParams
   } = useSearch();
 
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -103,25 +105,27 @@ const TextFilter: React.FC = () => {
   }, [texts, searchTerm, selectedCollections, selectedGenres, dateRange]);
 
   const handleTextToggle = useCallback((textId: number) => {
-    setSelectedTexts(prev =>
+    setSelectedTextIds(prev => 
       prev.includes(textId)
         ? prev.filter(id => id !== textId)
         : [...prev, textId]
     );
-  }, [setSelectedTexts]);
+  }, [setSelectedTextIds]);
+
 
   const handleAddAll = useCallback(() => {
-    setSelectedTexts(prev => {
+    setSelectedTextIds(prev => {
       const newIds = filteredTexts.map(text => text.text_id);
       return Array.from(new Set([...prev, ...newIds]));
     });
-  }, [filteredTexts, setSelectedTexts]);
+  }, [filteredTexts, setSelectedTextIds]);
 
   const handleRemoveAll = useCallback(() => {
-    setSelectedTexts(prev =>
-      prev.filter(id => !filteredTexts.find(text => text.text_id === id))
-    );
-  }, [filteredTexts, setSelectedTexts]);
+    setSelectedTextIds(prev => {
+      const filteredIds = new Set(filteredTexts.map(text => text.text_id));
+      return prev.filter(id => !filteredIds.has(id));
+    });
+  }, [filteredTexts, setSelectedTextIds]);
 
   const showBulkActions = searchTerm || selectedCollections.length > 0 ||
     selectedGenres.length > 0 || dateRange !== null;
@@ -132,7 +136,7 @@ const TextFilter: React.FC = () => {
 
   const itemData = {
     items: filteredTexts,
-    selectedTexts,
+    selectedTexts: selectedTextIds,
     onToggle: handleTextToggle,
   };
 
@@ -161,33 +165,21 @@ const TextFilter: React.FC = () => {
         </FixedSizeList>
       </div>
       <div className="text-list-buttons-container">
-        <div>
-          <button
-            onClick={resetAllFilters}
-          >
-            Reset All Filters
-          </button>
-        </div>
         {showBulkActions && (
           <>
             <div>
-              <button
-                onClick={handleAddAll}
-              >
+              <button onClick={handleAddAll}>
                 Add All Filtered ({filteredTexts.length})
               </button>
             </div>
             <div>
-              <button
-                onClick={handleRemoveAll}
-              >
+              <button onClick={handleRemoveAll}>
                 Remove All Filtered
               </button>
             </div>
           </>
         )}
       </div>
-
     </div>
   );
 };
