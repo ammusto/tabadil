@@ -96,14 +96,14 @@ export const searchOpenSearch = async (
     ],
     highlight: {
       fields: {
-        "page_content": {          // Highlight original content
+        "page_content": {
           type: 'fvh',
           number_of_fragments: 3,
           fragment_size: 200,
           pre_tags: ['<span class="highlight">'],
           post_tags: ['</span>']
         },
-        "page_content.proclitic": { // Also highlight proclitic matches
+        "page_content.proclitic": {
           type: 'fvh',
           number_of_fragments: 3,
           fragment_size: 200,
