@@ -88,7 +88,6 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [selectedCollections, setSelectedCollections] = useState<string[]>([]);
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [searchParams, setSearchParams] = useState(parseUrlParams(location.search));
-  const [fetchedRanges, setFetchedRanges] = useState<Array<[number, number]>>([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [selectedTextIds, setSelectedTextIds] = useState<number[]>(
     parseUrlParams(location.search).text_ids
@@ -165,7 +164,6 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
       const { results: newResults, total } = await searchOpenSearch(searchConfig);
 
-      setFetchedRanges(prev => [...prev, [batchStartPage, batchStartPage + PAGES_PER_FETCH - 1]]);
 
       setResults(prev => {
         const allResults = [...prev];
@@ -198,7 +196,6 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (searchString) {
       const params = parseUrlParams(location.search);
       setSearchParams(params);
-      setFetchedRanges([]);
       fetchBatch(params.page); // Use the actual page from URL for initial fetch
     } else {
       setResults([]);

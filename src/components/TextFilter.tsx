@@ -55,13 +55,11 @@ const Row: React.FC<RowProps> = ({ index, style, data }) => {
 const TextFilter: React.FC = () => {
   const { texts, isLoading } = useMetadata();
   const {
-    searchParams,
     dateRange,
     selectedCollections,
     selectedGenres,
     selectedTextIds,
-    setSelectedTextIds,
-    updateURLParams
+    setSelectedTextIds
   } = useSearch();
 
   const [searchTerm, setSearchTerm] = useState<string>('');
