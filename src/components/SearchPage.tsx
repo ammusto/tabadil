@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useMetadata } from '../contexts/MetadataContext';
 import { useSearch } from '../contexts/SearchContext';
 import MultiSelect from './MultiSelect';

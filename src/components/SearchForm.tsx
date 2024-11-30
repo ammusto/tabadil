@@ -49,7 +49,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ showFilters, setShowFilters }) 
     setKunyas(['']);
     setNasab('');
     setNisbas(['']);
-    setHasSearched(false)
+    setHasSearched(false);
     setAllowRareKunyaNisba(false);
     setAllowNasabBase(false);
     setSelectedTextIds([]);
@@ -57,8 +57,14 @@ const SearchForm: React.FC<SearchFormProps> = ({ showFilters, setShowFilters }) 
     setSelectedGenres([]);
     setResults([]);
     setShowFilters(false);
-
-  }, [showFilters, setShowFilters, updateURLParams]);
+  }, [
+    setHasSearched,
+    setResults,
+    setSelectedTextIds,
+    setSelectedCollections,
+    setSelectedGenres,
+    setShowFilters
+  ]);
 
   const addKunya = useCallback(() => {
     if (kunyas.length < 2) {
