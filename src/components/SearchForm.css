@@ -105,7 +105,8 @@
   }
   
   .form-checkbox {
-    text-align: center;
+    text-align: left;
+    direction: ltr;
     margin-top:10px;
   }
   

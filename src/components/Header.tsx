@@ -13,7 +13,7 @@ const Header: React.FC = () => {
           <div className="nav-center">
             <li>
               <Link to="/">
-                Home
+                Search
               </Link>
             </li>
             <li>

@@ -10,8 +10,9 @@ interface SearchFormProps {
 }
 
 const SearchForm: React.FC<SearchFormProps> = ({ showFilters, setShowFilters }) => {
-  const { searchParams, updateURLParams, setHasSearched, isLoading } = useSearch();
-  
+  const { searchParams, updateURLParams, setHasSearched, isLoading, setSelectedTextIds, setSelectedCollections,
+    setSelectedGenres, setResults } = useSearch();
+
   const [kunyas, setKunyas] = useState<string[]>(
     searchParams.kunyas.length > 0 ? searchParams.kunyas : ['']
   );
@@ -20,11 +21,13 @@ const SearchForm: React.FC<SearchFormProps> = ({ showFilters, setShowFilters }) 
     searchParams.nisbas.length > 0 ? searchParams.nisbas : ['']
   );
   const [allowRareKunyaNisba, setAllowRareKunyaNisba] = useState(searchParams.allowRareKunyaNisba);
+  const [allowNasabBase, setAllowNasabBase] = useState(searchParams.allowNasabBase);
+  const [allowKunyaNasab, setAllowKunyaNasab] = useState(searchParams.allowKunyaNasab);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!validateInputs(kunyas, nasab, nisbas, allowRareKunyaNisba)) {
+
+    if (!validateInputs(kunyas, nasab, nisbas, allowRareKunyaNisba, allowNasabBase, allowKunyaNasab)) {
       toast.error("Please enter at least 2 of: kunya, nasab, or nisba to search");
       return;
     }
@@ -34,6 +37,8 @@ const SearchForm: React.FC<SearchFormProps> = ({ showFilters, setShowFilters }) 
       nasab,
       nisbas: nisbas.filter(Boolean),
       allowRareKunyaNisba,
+      allowNasabBase,
+      allowKunyaNasab,
       page: 1
     });
     setHasSearched(true)
@@ -46,14 +51,11 @@ const SearchForm: React.FC<SearchFormProps> = ({ showFilters, setShowFilters }) 
     setNisbas(['']);
     setHasSearched(false)
     setAllowRareKunyaNisba(false);
-    updateURLParams({
-      kunyas: [],
-      nasab: '',
-      nisbas: [],
-      text_ids: [],
-      page: 1,
-      allowRareKunyaNisba: false
-    });
+    setAllowNasabBase(false);
+    setSelectedTextIds([]);
+    setSelectedCollections([]);
+    setSelectedGenres([]);
+    setResults([]);
     setShowFilters(false);
 
   }, [showFilters, setShowFilters, updateURLParams]);
@@ -94,7 +96,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ showFilters, setShowFilters }) 
                 type="text"
                 value={kunya}
                 onChange={(e) => updateKunya(index, e.target.value)}
-                placeholder={index === 1 ? 'laqab' : 'kunya'}
+                placeholder={index === 1 ? 'لقب' : 'كنية'}
                 className="rtl-input"
                 dir="rtl"
               />
@@ -111,7 +113,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ showFilters, setShowFilters }) 
           ))}
           {kunyas.length < 2 && (
             <button type="button" onClick={addKunya} className="add-kunya">
-              + Add Laqab
+              Add Laqab
             </button>
           )}
           <div className="form-checkbox">
@@ -121,7 +123,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ showFilters, setShowFilters }) 
                 checked={allowRareKunyaNisba}
                 onChange={(e) => setAllowRareKunyaNisba(e.target.checked)}
               />
-              Rare Kunya-Nisba
+              Search Kunya + Nisba
             </label>
           </div>
         </div>
@@ -131,10 +133,30 @@ const SearchForm: React.FC<SearchFormProps> = ({ showFilters, setShowFilters }) 
             type="text"
             value={nasab}
             onChange={(e) => setNasab(e.target.value)}
-            placeholder="nasab"
+            placeholder="نَسَب"
             className="rtl-input"
             dir="rtl"
           />
+          <div className="form-checkbox">
+            <label>
+              <input
+                type="checkbox"
+                checked={allowNasabBase}
+                onChange={(e) => setAllowNasabBase(e.target.checked)}
+              />
+              Search 2-part nasab
+            </label>
+          </div>
+          <div className="form-checkbox">
+            <label>
+              <input
+                type="checkbox"
+                checked={allowKunyaNasab}
+                onChange={(e) => setAllowKunyaNasab(e.target.checked)}
+              />
+              Search 1st Nasab + Kunya
+            </label>
+          </div>
         </div>
 
         <div className="input-group">
@@ -144,7 +166,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ showFilters, setShowFilters }) 
                 type="text"
                 value={nisba}
                 onChange={(e) => updateNisba(index, e.target.value)}
-                placeholder={`nisba ${index + 1}`}
+                placeholder={`نسبة ${index + 1}`}
                 className="rtl-input"
                 dir="rtl"
               />
@@ -160,7 +182,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ showFilters, setShowFilters }) 
             </div>
           ))}
           <button type="button" onClick={addNisba} className="add-nisba">
-            + Add Nisba
+            Add Nisba
           </button>
         </div>
         <div className="search-form-buttons">
@@ -197,13 +219,16 @@ const validateInputs = (
   kunyas: string[],
   nasab: string,
   nisbas: string[],
-  allowRare: boolean
+  allowRare: boolean,
+  allowNasab: boolean,
+  allowKunyaNasab: boolean,
+
 ): boolean => {
   const hasKunya = kunyas.some(kunya => kunya.trim().length > 0);
   const hasNasab = nasab.trim().length > 0;
   const hasNisba = nisbas.some(nisba => nisba.trim().length > 0);
 
-  if (allowRare && hasKunya && hasNisba) {
+  if (allowRare && allowNasab && hasKunya && hasNisba && allowKunyaNasab) {
     return true;
   }
 

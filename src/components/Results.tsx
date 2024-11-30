@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useSearch } from '../contexts/SearchContext';
 import { useMetadata } from '../contexts/MetadataContext';
 import { SearchResult } from '../types';
@@ -6,6 +6,86 @@ import DownloadButton from './DownloadButton';
 import './Results.css';
 import Pagination from './Pagination';
 import LoadingGif from './LoadingGif';
+
+const ResultHeader: React.FC<{ totalResults: number }> = ({ totalResults }) => (
+  <div className="results-header">
+    <h4>
+      {totalResults === 10000
+        ? "Found 10,000+ results"
+        : `Found ${totalResults.toLocaleString()} results`}
+    </h4>
+  </div>
+);
+
+const NoResults: React.FC<{ hasSearched: boolean }> = ({ hasSearched }) => {
+  if (!hasSearched) return null;
+  
+  return (
+    <div className="results-container">
+      <div className="results-header center">
+        <h3>No Results Found</h3>
+      </div>
+    </div>
+  );
+};
+
+const ResultTableHeader: React.FC = () => (
+  <div className='result-item bold'>
+    <div className="result-title">Title</div>
+    <div className="highlights center">Result</div>
+    <div className="result-page center">Vol:Page</div>
+  </div>
+);
+
+interface ResultItemProps {
+  result: SearchResult;
+  title: string;
+}
+
+const ResultItem: React.FC<ResultItemProps> = ({ result, title }) => {
+  const getUniqueHighlights = useMemo(() => {
+    if (!result.highlights || Object.keys(result.highlights).length === 0) {
+      return [];
+    }
+
+    const uniqueHighlights = new Set<string>();
+    const allHighlights: string[] = [];
+
+    Object.values(result.highlights).forEach(highlights => {
+      highlights.forEach(highlight => {
+        if (!uniqueHighlights.has(highlight)) {
+          uniqueHighlights.add(highlight);
+          allHighlights.push(highlight);
+        }
+      });
+    });
+
+    return allHighlights;
+  }, [result.highlights]);
+
+  return (
+    <div className="result-item">
+      <div className="result-title">
+      <a href={`https://mutun.pages.dev/text/${result.text_id}`} target="_blank" rel="noopener noreferrer"><h4>{title}</h4></a>
+      </div>
+      <div className="highlights">
+        <div className="highlight-group">
+          {getUniqueHighlights.map((highlight, index) => (
+            <div key={index} className="highlight">
+              <span>• </span>
+              <span dangerouslySetInnerHTML={{ __html: highlight }} />
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="result-page">
+        <span className="page-info rtl">
+        <a href={`https://mutun.pages.dev/reader/${result.text_id}/${result.vol}/${result.page_id}`} target="_blank" rel="noopener noreferrer">{result.vol}:{result.page_num}</a>
+        </span>
+      </div>
+    </div>
+  );
+};
 
 const Results: React.FC = () => {
   const {
@@ -18,33 +98,13 @@ const Results: React.FC = () => {
     updateURLParams,
     fetchNextBatchIfNeeded
   } = useSearch();
-  
+
   const { texts } = useMetadata();
 
   const getTextTitle = useCallback((textId: number) => {
     const text = texts.find(t => t.text_id === textId);
     return text?.title_ar || 'Unknown Text';
   }, [texts]);
-
-  const renderHighlights = (result: SearchResult) => {
-    if (!result.highlights || Object.keys(result.highlights).length === 0) {
-      return null;
-    }
-
-    return Object.values(result.highlights).map((highlights, index) => (
-      <div key={index} className="highlight-group">
-        {highlights.map((highlight, hIndex) => (
-          <div
-            key={`${index}-${hIndex}`}
-            className="highlight"
-          >
-            <span>• </span>
-            <span dangerouslySetInnerHTML={{ __html: highlight }} />
-          </div>
-        ))}
-      </div>
-    ));
-  };
 
   const handlePageChange = useCallback(async (newPage: number) => {
     await fetchNextBatchIfNeeded(newPage);
@@ -56,53 +116,26 @@ const Results: React.FC = () => {
     return <div><LoadingGif /></div>;
   }
 
-  if (results.length === 0 && !hasSearched) {
-    return (
-      <>
-
-      </>
-    );
-  }
-  if (results.length === 0 && hasSearched) {
-    return (
-      <div className="results-container">
-        <div className="results-header center">
-          <h3>
-            No Results Found
-          </h3>
-        </div>
-      </div>
-    );
+  if (results.length === 0) {
+    return <NoResults hasSearched={hasSearched} />;
   }
 
   const startIndex = (searchParams.page - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedResults = results.slice(startIndex, endIndex);
-  const resultText = totalResults === 10000
-    ? "Found 10,000+ results"
-    : `Found ${totalResults.toLocaleString()} results`;
 
   return (
     <div className="results-container">
-      <div className="results-header center">
-        <h3>{resultText}</h3>
-      </div>
-
+      <ResultHeader totalResults={totalResults} />
+      
       <div className="results-list">
+        <ResultTableHeader />
         {paginatedResults.map((result, index) => (
-          <div key={`${result.text_id}-${result.page_id}-${index}`} className="result-item">
-            <div className="result-title">
-              <h4>{getTextTitle(result.text_id)}</h4>
-            </div>
-            <div className="highlights">
-              {renderHighlights(result)}
-            </div>
-            <div className="result-page">
-              <span className="page-info">
-                {result.vol}:{result.page_num}
-              </span>
-            </div>
-          </div>
+          <ResultItem
+            key={`${result.text_id}-${result.page_id}-${index}`}
+            result={result}
+            title={getTextTitle(result.text_id)}
+          />
         ))}
       </div>
 
@@ -114,6 +147,7 @@ const Results: React.FC = () => {
         maxResults={10000}
         enableKeyboardNav={true}
       />
+      
       <DownloadButton />
     </div>
   );

@@ -22,9 +22,11 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredOptions = options.filter(option =>
-    option.label.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredOptions = options
+    .filter(option =>
+      option.label.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => a.label.localeCompare(b.label)); // Sort alphabetically by label
 
   const handleToggle = useCallback((value: string) => {
     const newSelection = selectedValues.includes(value)

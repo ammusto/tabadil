@@ -54,7 +54,7 @@ const Row: React.FC<RowProps> = ({ index, style, data }) => {
 
 const TextFilter: React.FC = () => {
   const { texts, isLoading } = useMetadata();
-  const { 
+  const {
     searchParams,
     dateRange,
     selectedCollections,
@@ -105,7 +105,7 @@ const TextFilter: React.FC = () => {
   }, [texts, searchTerm, selectedCollections, selectedGenres, dateRange]);
 
   const handleTextToggle = useCallback((textId: number) => {
-    setSelectedTextIds(prev => 
+    setSelectedTextIds(prev =>
       prev.includes(textId)
         ? prev.filter(id => id !== textId)
         : [...prev, textId]
@@ -165,6 +165,13 @@ const TextFilter: React.FC = () => {
         </FixedSizeList>
       </div>
       <div className="text-list-buttons-container">
+        {selectedTextIds.length > 0 && (
+          <div>
+            <button onClick={() => setSelectedTextIds([])}>
+              Clear Selected Texts
+            </button>
+          </div>
+        )}
         {showBulkActions && (
           <>
             <div>
@@ -180,6 +187,7 @@ const TextFilter: React.FC = () => {
           </>
         )}
       </div>
+
     </div>
   );
 };
