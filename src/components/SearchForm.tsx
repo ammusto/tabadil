@@ -52,6 +52,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ showFilters, setShowFilters }) 
     setHasSearched(false);
     setAllowRareKunyaNisba(false);
     setAllowNasabBase(false);
+    setAllowKunyaNasab(false)
     setSelectedTextIds([]);
     setSelectedCollections([]);
     setSelectedGenres([]);
