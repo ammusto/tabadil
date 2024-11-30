@@ -1,7 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import './MultiSelect.css';
 
-
 interface Option {
   value: string;
   label: string;
@@ -14,6 +13,34 @@ interface MultiSelectProps {
   onSelectionChange: (values: string[]) => void;
 }
 
+const diacriticMap: { [key: string]: string } = {
+  'ā': 'a', 'Ā': 'a',
+  'ī': 'i', 'Ī': 'i',
+  'ū': 'u', 'Ū': 'u',
+  'ṭ': 't', 'Ṭ': 't',
+  'ḥ': 'h', 'Ḥ': 'h',
+  'ḍ': 'd', 'Ḍ': 'd',
+  'ẓ': 'z', 'Ẓ': 'z',
+  'ṣ': 's', 'Ṣ': 's',
+  'ʿ': "'",
+  'ʾ': "'",
+};
+
+const normalizeText = (text: string): string => {
+  // Convert to lowercase first
+  let normalized = text.toLowerCase();
+  
+  // Normalize any fancy quotes to simple straight quote
+  normalized = normalized.replace(/['']/g, "'");
+  
+  // Replace diacritics with their base characters
+  Object.entries(diacriticMap).forEach(([diacritic, base]) => {
+    normalized = normalized.replace(new RegExp(diacritic, 'g'), base);
+  });
+  
+  return normalized;
+};
+
 const MultiSelect: React.FC<MultiSelectProps> = ({
   label,
   options,
@@ -23,10 +50,12 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredOptions = options
-    .filter(option =>
-      option.label.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-    .sort((a, b) => a.label.localeCompare(b.label)); // Sort alphabetically by label
+    .filter(option => {
+      const normalizedLabel = normalizeText(option.label);
+      const normalizedSearch = normalizeText(searchTerm);
+      return normalizedLabel.includes(normalizedSearch);
+    })
+    .sort((a, b) => a.label.localeCompare(b.label));
 
   const handleToggle = useCallback((value: string) => {
     const newSelection = selectedValues.includes(value)

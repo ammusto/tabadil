@@ -1,9 +1,20 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { searchOpenSearch } from '../utils/searchClient';
 import { generateNamePatterns } from '../utils/namePatterns';
 import { SearchResult, SearchConfig, DateRange } from '../types';
 import { compressToRanges, decompressRanges, isValidRangeString } from '../utils/compression';
+
+interface SearchParams {
+  kunyas: string[];
+  nasab: string;
+  nisbas: string[];
+  text_ids: number[];
+  page: number;
+  allowRareKunyaNisba: boolean;
+  allowNasabBase: boolean;
+  allowKunyaNasab: boolean;
+}
 
 interface SearchContextType {
   results: SearchResult[];
@@ -17,21 +28,11 @@ interface SearchContextType {
   itemsPerPage: number;
   selectedTextIds: number[];
   hasSearched: boolean;
-  searchParams: {
-    kunyas: string[];
-    nasab: string;
-    nisbas: string[];
-    text_ids: number[];
-    page: number;
-    allowRareKunyaNisba: boolean;
-    allowNasabBase: boolean;
-    allowKunyaNasab: boolean;
-
-  };
-  updateURLParams: (params: Partial<SearchContextType['searchParams']>) => void;
+  searchParams: SearchParams;
+  updateURLParams: (params: Partial<SearchParams>) => void;
   fetchNextBatchIfNeeded: (page: number) => Promise<void>;
   setDateRange: (range: DateRange | null) => void;
-  setHasSearched:  React.Dispatch<React.SetStateAction<boolean>>;
+  setHasSearched: React.Dispatch<React.SetStateAction<boolean>>;
   setResults: React.Dispatch<React.SetStateAction<SearchResult[]>>;
   setSelectedTextIds: React.Dispatch<React.SetStateAction<number[]>>;
   setSelectedCollections: React.Dispatch<React.SetStateAction<string[]>>;
@@ -44,18 +45,22 @@ const ITEMS_PER_PAGE = 25;
 const PAGES_PER_FETCH = 10;
 const MAX_RESULTS = 10000;
 
-const parseUrlParams = (search: string) => {
-  const params = new URLSearchParams(search);
-  const kunyas = params.get('kunyas')?.split(',').filter(Boolean) || [];
-  const nasab = params.get('nasab') || '';
-  const nisbas = params.get('nisbas')?.split(',').filter(Boolean) || [];
-  const textIdsParam = params.get('text_ids') || '';
-  const page = parseInt(params.get('page') || '1', 10);
-  const allowRareKunyaNisba = params.get('allowRareKunyaNisba') === 'true';
-  const allowNasabBase = params.get('allowNasabBase') === 'true';
-  const allowKunyaNasab = params.get('allowKunyaNasab') === 'true';
+const getEmptySearchParams = (): SearchParams => ({
+  kunyas: [],
+  nasab: '',
+  nisbas: [],
+  text_ids: [],
+  page: 1,
+  allowRareKunyaNisba: false,
+  allowNasabBase: false,
+  allowKunyaNasab: false
+});
 
+const parseUrlParams = (search: string): SearchParams => {
+  const params = new URLSearchParams(search);
+  const textIdsParam = params.get('text_ids') || '';
   let text_ids: number[] = [];
+  
   if (textIdsParam) {
     if (isValidRangeString(textIdsParam)) {
       text_ids = decompressRanges(textIdsParam);
@@ -65,153 +70,164 @@ const parseUrlParams = (search: string) => {
   }
 
   return {
-    kunyas,
-    nasab,
-    nisbas,
+    kunyas: params.get('kunyas')?.split(',').filter(Boolean) || [],
+    nasab: params.get('nasab') || '',
+    nisbas: params.get('nisbas')?.split(',').filter(Boolean) || [],
     text_ids,
-    page,
-    allowRareKunyaNisba,
-    allowNasabBase,
-    allowKunyaNasab
+    page: parseInt(params.get('page') || '1', 10),
+    allowRareKunyaNisba: params.get('allowRareKunyaNisba') === 'true',
+    allowNasabBase: params.get('allowNasabBase') === 'true',
+    allowKunyaNasab: params.get('allowKunyaNasab') === 'true'
   };
 };
 
 export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const fetchedRanges = useRef<Set<string>>(new Set());
+  const lastSearchKey = useRef<string>('');
 
+  // Core state
   const [results, setResults] = useState<SearchResult[]>([]);
   const [totalResults, setTotalResults] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
+  const [hasSearched, setHasSearched] = useState(false);
+
+  // Filter state
   const [dateRange, setDateRange] = useState<DateRange | null>(null);
   const [selectedCollections, setSelectedCollections] = useState<string[]>([]);
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
-  const [searchParams, setSearchParams] = useState(parseUrlParams(location.search));
-  const [hasSearched, setHasSearched] = useState(false);
-  const [selectedTextIds, setSelectedTextIds] = useState<number[]>(
-    parseUrlParams(location.search).text_ids
-  );
-
-  const updateURLParams = useCallback((newParams: Partial<SearchContextType['searchParams']>) => {
-    const updatedParams = { 
-      ...searchParams, 
-      ...newParams,
-      text_ids: selectedTextIds
-    };    const params = new URLSearchParams();
-    
-    if (updatedParams.kunyas.length > 0) {
-      params.append('kunyas', updatedParams.kunyas.join(','));
-    }
-    if (updatedParams.nasab) {
-      params.append('nasab', updatedParams.nasab);
-    }
-    if (updatedParams.nisbas.length > 0) {
-      params.append('nisbas', updatedParams.nisbas.join(','));
-    }
-    if (updatedParams.text_ids.length > 0) {
-      const compressedTextIds = compressToRanges(updatedParams.text_ids);
-      params.append('text_ids', compressedTextIds);
-    }
-    if (updatedParams.page !== 1) {
-      params.append('page', updatedParams.page.toString());
-    }
-    if (updatedParams.allowRareKunyaNisba) {
-      params.append('allowRareKunyaNisba', 'true');
-    }
-    if (updatedParams.allowNasabBase) {
-      params.append('allowNasabBase', 'true');
-    }
-    if (updatedParams.allowKunyaNasab) {
-      params.append('allowKunyaNasab', 'true');
-    }
-    navigate({ search: params.toString() });
-    setSearchParams(updatedParams);
-  }, [navigate, searchParams, selectedTextIds]);
-
-  const needsFetch = useCallback((page: number) => {
-    const startIndex = (page - 1) * ITEMS_PER_PAGE;
-    return !results[startIndex];
-  }, [results]);
-
-
   
-  const fetchBatch = useCallback(async (startPage: number) => {
-    setIsLoading(true);
-    setError(null);
+  // Search parameters state
+  const [searchParams, setSearchParams] = useState<SearchParams>(getEmptySearchParams);
+  const [selectedTextIds, setSelectedTextIds] = useState<number[]>([]);
 
+  const executeSearch = useCallback(async (params: SearchParams) => {
+    const batchStartPage = Math.floor((params.page - 1) / PAGES_PER_FETCH) * PAGES_PER_FETCH + 1;
+    const rangeKey = `${JSON.stringify({ ...params, page: batchStartPage })}`;
+    
+    if (fetchedRanges.current.has(rangeKey)) return;
+    
+    setIsLoading(true);
+    
     try {
-      const batchStartPage = Math.floor((startPage - 1) / PAGES_PER_FETCH) * PAGES_PER_FETCH + 1;
       const from = (batchStartPage - 1) * ITEMS_PER_PAGE;
       const size = PAGES_PER_FETCH * ITEMS_PER_PAGE;
 
       const { searchPatterns, filterPatterns } = generateNamePatterns(
-        searchParams.kunyas,
-        searchParams.nasab,
-        searchParams.nisbas,
-        searchParams.allowRareKunyaNisba,
-        searchParams.allowNasabBase,
-        searchParams.allowKunyaNasab
+        params.kunyas,
+        params.nasab,
+        params.nisbas,
+        params.allowRareKunyaNisba,
+        params.allowNasabBase,
+        params.allowKunyaNasab
       );
 
       const searchConfig: SearchConfig = {
         patterns: searchPatterns,
         filterPatterns,
-        selectedTexts: searchParams.text_ids,
+        selectedTexts: params.text_ids,
         from,
         size,
       };
 
       const { results: newResults, total } = await searchOpenSearch(searchConfig);
 
-
       setResults(prev => {
-        const allResults = [...prev];
+        const newArray = prev.length === 0 ? 
+          new Array(Math.min(total, MAX_RESULTS)) : 
+          [...prev];
+        
         for (let i = 0; i < newResults.length; i++) {
-          allResults[from + i] = newResults[i];
+          newArray[from + i] = newResults[i];
         }
-        return allResults;
+        return newArray;
       });
 
       setTotalResults(Math.min(total, MAX_RESULTS));
+      fetchedRanges.current.add(rangeKey);
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Search failed'));
     } finally {
       setIsLoading(false);
     }
-  }, [searchParams]);
+  }, []);
+
+  const updateURLParams = useCallback((newParams: Partial<SearchParams>) => {
+    const updatedParams = {
+      ...searchParams,
+      ...newParams,
+      text_ids: selectedTextIds
+    };
+
+    const params = new URLSearchParams();
+    
+    if (updatedParams.kunyas.length > 0) params.append('kunyas', updatedParams.kunyas.join(','));
+    if (updatedParams.nasab) params.append('nasab', updatedParams.nasab);
+    if (updatedParams.nisbas.length > 0) params.append('nisbas', updatedParams.nisbas.join(','));
+    if (updatedParams.text_ids.length > 0) params.append('text_ids', compressToRanges(updatedParams.text_ids));
+    if (updatedParams.page !== 1) params.append('page', updatedParams.page.toString());
+    if (updatedParams.allowRareKunyaNisba) params.append('allowRareKunyaNisba', 'true');
+    if (updatedParams.allowNasabBase) params.append('allowNasabBase', 'true');
+    if (updatedParams.allowKunyaNasab) params.append('allowKunyaNasab', 'true');
+
+    navigate({ search: params.toString() });
+  }, [navigate, searchParams, selectedTextIds]);
+
+  // Handle URL changes
+  useEffect(() => {
+    const handleURLChange = () => {
+      // Extract search parameters
+      const currentParams = parseUrlParams(location.search);
+      const hasSearchParameters = currentParams.kunyas.length > 0 || 
+                                currentParams.nasab || 
+                                currentParams.nisbas.length > 0;
+
+      // Reset state when navigating to empty path
+      if (!location.search) {
+        setSearchParams(getEmptySearchParams());
+        setResults([]);
+        setTotalResults(0);
+        setHasSearched(false);
+        fetchedRanges.current.clear();
+        lastSearchKey.current = '';
+        return;
+      }
+
+      // Ignore invalid URLs
+      if (!hasSearchParameters) return;
+
+      // Generate search key excluding page
+      const currentSearchKey = JSON.stringify({
+        ...currentParams,
+        page: undefined
+      });
+
+      // Check if only the page has changed
+      const searchChanged = currentSearchKey !== lastSearchKey.current;
+
+      // Update state and execute search as needed
+      setSearchParams(currentParams);
+
+      if (searchChanged) {
+        lastSearchKey.current = currentSearchKey;
+        setResults([]);
+        fetchedRanges.current.clear();
+        setHasSearched(true);
+        void executeSearch(currentParams);
+      } else {
+        void executeSearch(currentParams);
+      }
+    };
+
+    handleURLChange();
+  }, [location.search]); // Only depend on location.search
 
   const fetchNextBatchIfNeeded = useCallback(async (page: number) => {
-    if (needsFetch(page)) {
-      await fetchBatch(page);
-    }
-  }, [needsFetch, fetchBatch]);
-
-  // Handle initial search and URL changes
-  useEffect(() => {
-    const searchParamsWithoutPage = new URLSearchParams(location.search);
-    searchParamsWithoutPage.delete('page');
-    const searchString = searchParamsWithoutPage.toString();
-
-    if (searchString) {
-      const params = parseUrlParams(location.search);
-      setSearchParams(params);
-      fetchBatch(params.page); // Use the actual page from URL for initial fetch
-    } else {
-      setResults([]);
-      setTotalResults(0);
-      setSearchParams(parseUrlParams(''));
-    }
-  }, [location.search.replace(/[?&]page=\d+/, '')]);
-
-  useEffect(() => {
-    if (location.pathname === '/' && !location.search) {
-      setResults([]);
-      setTotalResults(0);
-      setHasSearched(false);
-
-    }
-  }, [location.pathname, location.search]);
+    if (!hasSearched) return;
+    await executeSearch({ ...searchParams, page });
+  }, [executeSearch, hasSearched, searchParams]);
 
   return (
     <SearchContext.Provider

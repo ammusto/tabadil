@@ -10,7 +10,7 @@
     position: absolute;
     z-index: 100;
     background: #ffffff;
-    border: 2px solid #3b82f6;
+    border: 2px solid black;
     border-radius: 100%;
     display: block;
     height: 18px;
@@ -44,12 +44,12 @@
   
   /* Colored part of track */
   .track.track-0 {
-    background: #3b82f6;
+    background: #e5e7eb;
   }
   
   /* Track between thumbs */
   .track.track-1 {
-    background: #3b82f6;
+    background: black;
   }
   
   /* Track after second thumb */
@@ -71,4 +71,31 @@
   .disabled .track.track-0,
   .disabled .track.track-1 {
     background: #9ca3af;
+  }
+  .date-range-inputs {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  
+  .date-input {
+    width: 70px;
+    padding: 4px;
+    text-align: center;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  
+  .date-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  }
+  
+  .date-separator {
+    font-size: 14px;
+    color: #6b7280;
   }
