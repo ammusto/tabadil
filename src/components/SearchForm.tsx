@@ -161,7 +161,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ showFilters, setShowFilters }) 
                 checked={allowKunyaNasab}
                 onChange={(e) => setAllowKunyaNasab(e.target.checked)}
               />
-              Search 1st Nasab + Kunya
+              Search Kunya + 1st Nasab
             </label>
           </div>
         </div>
