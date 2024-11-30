@@ -143,7 +143,6 @@ if (allKunyaVariants.length > 0 && nasabParts.length > 0) {
     addNasabBasePatterns(twoPartString, allowNasabBase);
   }
 
-  console.log(Array.from(patterns))
   return {
     searchPatterns: Array.from(patterns),
     filterPatterns: [] // We'll use searchPatterns directly in this case
