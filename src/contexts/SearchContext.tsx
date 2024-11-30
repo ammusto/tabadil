@@ -222,7 +222,7 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     };
 
     handleURLChange();
-  }, [location.search]); // Only depend on location.search
+  }, [location.search, executeSearch]);
 
   const fetchNextBatchIfNeeded = useCallback(async (page: number) => {
     if (!hasSearched) return;
