@@ -45,7 +45,6 @@ const SearchPage: React.FC = () => {
 
         {showFilters && (
           <div className="search-layout">
-            {/* Left Sidebar */}
             <div className="search-sidebar">
               <div className="filter-section">
                 <div className="space-y-10">
@@ -67,8 +66,6 @@ const SearchPage: React.FC = () => {
                 </div>
               </div>
             </div>
-
-            {/* Main Content */}
             <div className="search-main">
               <div className="filter-section">
                 <TextFilter />

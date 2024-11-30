@@ -30,7 +30,7 @@ const normalizeText = (text: string): string => {
   // Convert to lowercase first
   let normalized = text.toLowerCase();
   
-  // Normalize any fancy quotes to simple straight quote
+  // Normalize all single quotes to simple straight quote
   normalized = normalized.replace(/['']/g, "'");
   
   // Replace diacritics with their base characters
