@@ -7,7 +7,7 @@ const About: React.FC = () => {
             <div className='text-content'>
                 <div>
                     <h2>About The Project</h2>
-                    <p>This tool was developped to create different permutations (tabdīl pl. tabādīl) of a given Arabic name, using parts of the kunyā and/or laqab, nasab, and nisba(s) to aid in searching biographical or other data for a given individual.</p>
+                    <p>This tool was developped to create different permutations (tabdīl pl. tabādīl) of a given Arabic name, using parts of the kunya and/or laqab, nasab, and nisba(s) to aid in searching biographical or other data for a given individual.</p>
                     <p></p>
                     <h2>How to Use</h2>
                     <ul>
@@ -16,8 +16,8 @@ const About: React.FC = () => {
                         <li>There are two checkboxes ("2-part Nasab" and "Kunya + Nisba" that are unchecked by default.</li>
                             <ul>
                                 <li>Checking "2-part nasab" will perform a search just based on the first two names in the nasab, which can produce an extreme amount of results depending on the rarity of the names (see example below).</li>
-                                <li>Checking "kunya + nisba" will include just the kunyā and nisba in a search (see example below). </li>
-                                <li>Checking "1st nasab + Kunya" will include just the kunyā and first name in the nasab in a search (see example below). </li>
+                                <li>Checking "kunya + nisba" will include just the kunya and nisba in a search (see example below). </li>
+                                <li>Checking "1st nasab + Kunya" will include just the kunya and first name in the nasab in a search (see example below). </li>
                             </ul>
                             <li>By default, this searches all 10,000+ texts from the <a href="mutun.pages.dev">mutūn corpus</a>, but you can filter and select a subset of these texts.</li>
                             <li>It will automatically search for: أبو، أبي، and أبا</li>
