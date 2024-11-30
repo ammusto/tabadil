@@ -65,9 +65,6 @@ const SelectedTexts: React.FC = () => {
     onToggle: () => {},
   };
 
-  if (selectedTextObjects.length === 0) {
-    return null;
-  }
 
   return (
     <div className="">

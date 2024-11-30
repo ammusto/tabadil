@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useMetadata } from '../contexts/MetadataContext';
 import { useSearch } from '../contexts/SearchContext';
 import MultiSelect from './MultiSelect';
@@ -7,6 +7,7 @@ import SearchForm from './SearchForm';
 import Results from './Results';
 import DateRangeSlider from './DateRangeSlider';
 import SelectedTexts from './SelectedTexts';
+import LoadingGif from './LoadingGif';
 
 const SearchPage: React.FC = () => {
   const { collections, genres, isLoading } = useMetadata();
@@ -16,11 +17,17 @@ const SearchPage: React.FC = () => {
     setSelectedCollections,
     setSelectedGenres
   } = useSearch();
-  
-  const [showFilters, setShowFilters] = useState(false);
 
+
+  const [showFilters, setShowFilters] = useState(false);
   if (isLoading) {
-    return <div className="search-page">Loading metadata...</div>;
+    return <div className="container">
+      <div className="search-container center">
+        <p>Loading App and Text Metadata</p>
+
+        <LoadingGif />
+      </div>
+    </div>;
   }
 
   const collectionOptions = collections.map(c => ({ value: c, label: c }));
@@ -30,7 +37,7 @@ const SearchPage: React.FC = () => {
     <div className="container">
       <div className="search-container">
         <div className="search-input-section">
-          <SearchForm 
+          <SearchForm
             showFilters={showFilters}
             setShowFilters={setShowFilters}
           />
@@ -72,7 +79,7 @@ const SearchPage: React.FC = () => {
             </div>
           </div>
         )}
-        
+
         <Results />
       </div>
     </div>

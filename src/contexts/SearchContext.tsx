@@ -24,11 +24,15 @@ interface SearchContextType {
     text_ids: number[];
     page: number;
     allowRareKunyaNisba: boolean;
+    allowNasabBase: boolean;
+    allowKunyaNasab: boolean;
+
   };
   updateURLParams: (params: Partial<SearchContextType['searchParams']>) => void;
   fetchNextBatchIfNeeded: (page: number) => Promise<void>;
   setDateRange: (range: DateRange | null) => void;
   setHasSearched:  React.Dispatch<React.SetStateAction<boolean>>;
+  setResults: React.Dispatch<React.SetStateAction<SearchResult[]>>;
   setSelectedTextIds: React.Dispatch<React.SetStateAction<number[]>>;
   setSelectedCollections: React.Dispatch<React.SetStateAction<string[]>>;
   setSelectedGenres: React.Dispatch<React.SetStateAction<string[]>>;
@@ -48,6 +52,8 @@ const parseUrlParams = (search: string) => {
   const textIdsParam = params.get('text_ids') || '';
   const page = parseInt(params.get('page') || '1', 10);
   const allowRareKunyaNisba = params.get('allowRareKunyaNisba') === 'true';
+  const allowNasabBase = params.get('allowNasabBase') === 'true';
+  const allowKunyaNasab = params.get('allowKunyaNasab') === 'true';
 
   let text_ids: number[] = [];
   if (textIdsParam) {
@@ -64,7 +70,9 @@ const parseUrlParams = (search: string) => {
     nisbas,
     text_ids,
     page,
-    allowRareKunyaNisba
+    allowRareKunyaNisba,
+    allowNasabBase,
+    allowKunyaNasab
   };
 };
 
@@ -112,7 +120,12 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (updatedParams.allowRareKunyaNisba) {
       params.append('allowRareKunyaNisba', 'true');
     }
-
+    if (updatedParams.allowNasabBase) {
+      params.append('allowNasabBase', 'true');
+    }
+    if (updatedParams.allowKunyaNasab) {
+      params.append('allowKunyaNasab', 'true');
+    }
     navigate({ search: params.toString() });
     setSearchParams(updatedParams);
   }, [navigate, searchParams, selectedTextIds]);
@@ -122,6 +135,8 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return !results[startIndex];
   }, [results]);
 
+
+  
   const fetchBatch = useCallback(async (startPage: number) => {
     setIsLoading(true);
     setError(null);
@@ -135,7 +150,9 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         searchParams.kunyas,
         searchParams.nasab,
         searchParams.nisbas,
-        searchParams.allowRareKunyaNisba
+        searchParams.allowRareKunyaNisba,
+        searchParams.allowNasabBase,
+        searchParams.allowKunyaNasab
       );
 
       const searchConfig: SearchConfig = {
@@ -190,6 +207,15 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   }, [location.search.replace(/[?&]page=\d+/, '')]);
 
+  useEffect(() => {
+    if (location.pathname === '/' && !location.search) {
+      setResults([]);
+      setTotalResults(0);
+      setHasSearched(false);
+
+    }
+  }, [location.pathname, location.search]);
+
   return (
     <SearchContext.Provider
       value={{
@@ -205,6 +231,7 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         searchParams,
         hasSearched,
         selectedTextIds,
+        setResults,
         setSelectedTextIds,
         setHasSearched,
         updateURLParams,

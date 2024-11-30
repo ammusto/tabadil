@@ -26,18 +26,44 @@ interface OpenSearchResponse {
 }
 
 interface MatchQuery {
-  match_phrase: {
-    page_content: {
-      query: string;
-    };
-  };
+  bool: {
+    should: [
+      {
+        match_phrase: {
+          "page_content": {
+            query: string;
+          }
+        }
+      },
+      {
+        match_phrase: {
+          "page_content.proclitic": {
+            query: string;
+          }
+        }
+      }
+    ]
+  }
 }
 
 const createExactMatchQuery = (pattern: string): MatchQuery => ({
-  match_phrase: {
-    page_content: {
-      query: pattern
-    }
+  bool: {
+    should: [
+      {
+        match_phrase: {
+          "page_content": {
+            query: pattern
+          }
+        }
+      },
+      {
+        match_phrase: {
+          "page_content.proclitic": {
+            query: pattern
+          }
+        }
+      }
+    ]
   }
 });
 
@@ -53,7 +79,6 @@ export const searchOpenSearch = async (
     'Content-Type': 'application/json'
   });
 
-  // Order patterns by length (longest first) and create exact match queries
   const orderedPatterns = orderPatternsByLength(config.patterns);
   const should = orderedPatterns.map(createExactMatchQuery);
 
@@ -71,7 +96,14 @@ export const searchOpenSearch = async (
     ],
     highlight: {
       fields: {
-        page_content: {
+        "page_content": {          // Highlight original content
+          type: 'fvh',
+          number_of_fragments: 3,
+          fragment_size: 200,
+          pre_tags: ['<span class="highlight">'],
+          post_tags: ['</span>']
+        },
+        "page_content.proclitic": { // Also highlight proclitic matches
           type: 'fvh',
           number_of_fragments: 3,
           fragment_size: 200,
@@ -82,7 +114,6 @@ export const searchOpenSearch = async (
     }
   };
 
-  // Add text_ids filter if present
   if (config.selectedTexts.length > 0) {
     if (!query.query.bool.filter) {
       query.query.bool.filter = [];
@@ -94,11 +125,7 @@ export const searchOpenSearch = async (
     });
   }
 
-  
-  console.log('Final query:', JSON.stringify(query, null, 2));
-
   try {
-    console.log(query)
     const response = await fetch(`${API_URL}/${API_INDEX}/_search`, {
       method: 'POST',
       headers,
