@@ -7,7 +7,7 @@ const About: React.FC = () => {
             <div className='text-content'>
                 <div>
                     <h2>About The Project</h2>
-                    <p>This tool was developped to create different permutations (tabdīl pl. tabādīl) of a given Arabic name, using parts of the kunya and/or laqab, nasab, and nisba(s) to aid in searching biographical or other data for a given individual.</p>
+                    <p>This tool was developped to create and search different permutations (tabdīl pl. tabādīl) of a given Arabic name, using parts of the kunya and/or laqab, nasab, and nisba(s).</p>
                     <p></p>
                     <h2>How to Use</h2>
                     <ul>
