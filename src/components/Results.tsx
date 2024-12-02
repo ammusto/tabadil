@@ -96,6 +96,7 @@ const Results: React.FC = () => {
     itemsPerPage,
     hasSearched,
     updateURLParams,
+    error,
     fetchNextBatchIfNeeded
   } = useSearch();
 
@@ -115,6 +116,17 @@ const Results: React.FC = () => {
   if (isLoading) {
     return <div><LoadingGif /></div>;
   }
+
+  if (error) {
+    return (
+      <div className="results-container">
+        <div className="results-header center">
+          <h3>{error.message}</h3>
+        </div>
+      </div>
+    );
+  }
+
 
   if (results.length === 0) {
     return <NoResults hasSearched={hasSearched} />;

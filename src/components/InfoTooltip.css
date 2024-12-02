@@ -1,0 +1,88 @@
+.tooltip-container {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip-trigger {
+  border: none;
+  background: none;
+  padding: 0px;
+  cursor: pointer;
+  border-radius: 50%;
+}
+
+.tooltip-trigger:hover {
+  background: transparent;
+  border: 0px;
+}
+
+.info-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.tooltip-popup {
+  position: absolute;
+  width: 256px; /* w-64 */
+  z-index: 50;
+}
+
+.tooltip-popup.position-top {
+  bottom: 100%;
+  margin-bottom: 8px;
+}
+
+.tooltip-popup.position-bottom {
+  top: 100%;
+  margin-top: 8px;
+  left: -35%;
+}
+
+.tooltip-popup.position-left {
+  right: 100%;
+  margin-right: 8px;
+}
+
+.tooltip-popup.position-right {
+  left: 100%;
+  margin-left: 8px;
+}
+
+.tooltip-content {
+  background: white;
+  padding: .5rem;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  direction: ltr;
+}
+
+.tooltip-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.tooltip-text {
+  font-size: 14px;
+  color: #666;
+  width:100%;
+  padding-left:.5rem;
+}
+
+.close-button {
+  border: none;
+  background: none;
+  color: black;
+  cursor: pointer;
+  font-weight: bold;
+  margin:0px;
+  height:16px
+}
+
+.close-button:hover {
+  border:0px;
+  background-color: transparent;
+  text-decoration: underline;
+}

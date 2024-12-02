@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { useSearch } from '../contexts/SearchContext';
 import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import SearchInput from './SearchInput';
 import './SearchForm.css';
 
 interface SearchFormProps {
@@ -24,6 +24,13 @@ const SearchForm: React.FC<SearchFormProps> = ({ showFilters, setShowFilters }) 
   const [allowNasabBase, setAllowNasabBase] = useState(searchParams.allowNasabBase);
   const [allowKunyaNasab, setAllowKunyaNasab] = useState(searchParams.allowKunyaNasab);
 
+  const tooltips = {
+    kunya: "Enter the kunya (e.g. أبو منصور)",
+    laqab: "Enter a laqab (e.g. قوام السنة)",
+    nasab: "Enter nasab with at least two names (e.g. معمر بن أحمد)",
+    nisba: "Enter a nisba (e.g. الأصبهاني)"
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -41,7 +48,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ showFilters, setShowFilters }) 
       allowKunyaNasab,
       page: 1
     });
-    setHasSearched(true)
+    setHasSearched(true);
     setShowFilters(false);
   };
 
@@ -52,7 +59,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ showFilters, setShowFilters }) 
     setHasSearched(false);
     setAllowRareKunyaNisba(false);
     setAllowNasabBase(false);
-    setAllowKunyaNasab(false)
+    setAllowKunyaNasab(false);
     setSelectedTextIds([]);
     setSelectedCollections([]);
     setSelectedGenres([]);
@@ -99,12 +106,11 @@ const SearchForm: React.FC<SearchFormProps> = ({ showFilters, setShowFilters }) 
         <div className="input-group">
           {kunyas.map((kunya, index) => (
             <div key={index} className="kunya-input">
-              <input
-                type="text"
+              <SearchInput
                 value={kunya}
-                onChange={(e) => updateKunya(index, e.target.value)}
+                onChange={(value) => updateKunya(index, value)}
                 placeholder={index === 1 ? 'لقب' : 'كنية'}
-                className="rtl-input"
+                tooltip={index === 1 ? tooltips.laqab : tooltips.kunya}
                 dir="rtl"
               />
               {index > 0 && (
@@ -136,12 +142,11 @@ const SearchForm: React.FC<SearchFormProps> = ({ showFilters, setShowFilters }) 
         </div>
 
         <div className="input-group">
-          <input
-            type="text"
+          <SearchInput
             value={nasab}
-            onChange={(e) => setNasab(e.target.value)}
+            onChange={setNasab}
             placeholder="نَسَب"
-            className="rtl-input"
+            tooltip={tooltips.nasab}
             dir="rtl"
           />
           <div className="form-checkbox">
@@ -169,12 +174,11 @@ const SearchForm: React.FC<SearchFormProps> = ({ showFilters, setShowFilters }) 
         <div className="input-group">
           {nisbas.map((nisba, index) => (
             <div key={index} className="nisba-input">
-              <input
-                type="text"
+              <SearchInput
                 value={nisba}
-                onChange={(e) => updateNisba(index, e.target.value)}
+                onChange={(value) => updateNisba(index, value)}
                 placeholder={`نسبة ${index + 1}`}
-                className="rtl-input"
+                tooltip={tooltips.nisba}
                 dir="rtl"
               />
               {index > 0 && (
@@ -229,7 +233,6 @@ const validateInputs = (
   allowRare: boolean,
   allowNasab: boolean,
   allowKunyaNasab: boolean,
-
 ): boolean => {
   const hasKunya = kunyas.some(kunya => kunya.trim().length > 0);
   const hasNasab = nasab.trim().length > 0;
