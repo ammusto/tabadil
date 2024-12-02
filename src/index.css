@@ -8,6 +8,11 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+html {
+  overflow-y: scroll;
+}
+
+
 * {
   box-sizing: border-box;
 }
@@ -45,6 +50,7 @@ a:hover {
 h2 {
   margin:0 !important;
 }
+
 
 
 input[type="text"] {

@@ -3,6 +3,11 @@ interface NamePatterns {
   filterPatterns: string[];
 }
 
+interface NasabInfo {
+  parts: string[];
+  isFemale: boolean;
+}
+
 const normalizeArabic = (text: string): string => {
   if (!text) return '';
   return text
@@ -10,9 +15,11 @@ const normalizeArabic = (text: string): string => {
     .replace(/[\u064B-\u065F]/g, '');
 };
 
-const getNasabParts = (nasab: string): string[] => {
-  if (!nasab) return [];
-  return nasab.split(/\s+(?:بن|بنت)\s+/).filter(Boolean);
+const getNasabParts = (nasab: string): NasabInfo => {
+  if (!nasab) return { parts: [], isFemale: false };
+  const isFemale = nasab.includes('بنت');
+  const parts = nasab.split(/\s+(?:بن|بنت)\s+/).filter(Boolean);
+  return { parts, isFemale };
 };
 
 const getKunyaVariants = (kunya: string): string[] => {
@@ -41,8 +48,10 @@ export const generateNamePatterns = (
   nasab: string,
   nisbas: string[],
   allowRareKunyaNisba: boolean = false,
-  allowNasabBase: boolean = false,
-  allowKunyaNasab: boolean = false
+  allowTwoNasab: boolean = false,
+  allowKunyaNasab: boolean = false,
+  allowOneNasab: boolean = false
+
 
 ): NamePatterns => {
   const patterns: Set<string> = new Set();
@@ -57,11 +66,19 @@ export const generateNamePatterns = (
   const nasabParts = getNasabParts(normalizedNasab);
 
   // Limit to first 3 nasab parts
-  const limitedNasabParts = nasabParts.slice(0, 3);
+  const limitedNasabParts = nasabParts.parts.slice(0, 3);
 
   // Helper to build full nasab string from parts
-  const buildNasabString = (parts: string[]): string => {
-    return parts.join(' بن ');
+  const buildNasabString = (parts: string[], isFemale: boolean): string => {
+    if (parts.length === 0) return '';
+    
+    const firstPart = parts[0];
+    const remainingParts = parts.slice(1);
+    
+    const firstJoin = firstPart.startsWith('بنت') ? firstPart : (isFemale ? `بنت ${firstPart}` : firstPart);
+    const restJoined = remainingParts.map(part => `بن ${part}`).join(' ');
+    
+    return [firstJoin, restJoined].filter(Boolean).join(' ');
   };
 
   // Helper to add patterns with and without nisba
@@ -73,7 +90,7 @@ export const generateNamePatterns = (
   };
 
   // Handle kunya + nisba when there's no nasab or when rare combinations are allowed
-  if ((allKunyaVariants.length > 0 && nasabParts.length === 0 && normalizedNisbas.length > 0) ||
+  if ((allKunyaVariants.length > 0 && nasabParts.parts.length === 0 && normalizedNisbas.length > 0) ||
     (allowRareKunyaNisba && allKunyaVariants.length > 0 && normalizedNisbas.length > 0)) {
     allKunyaVariants.forEach(kunyaVariant => {
       normalizedNisbas.forEach(nisba => {
@@ -85,63 +102,65 @@ export const generateNamePatterns = (
 // kunya + first name patterns
 const addKunyaNasabPatterns = (basePattern: string, includeBase: boolean) => {
   if (includeBase) {
-    // If allowKunyaNasab is true, add both base pattern and nisba versions
+    // If allowKunyaNasab is true, add both base pattern (kunya + 1st nasab) and nisba versions
     patterns.add(basePattern);
     normalizedNisbas.forEach(nisba => {
       patterns.add(`${basePattern} ${nisba}`);
     });
   } else {
-    // If allowKunyaNasab is false, only add nisba versions
+    // If allowKunyaNasab is false, only add nisba versions to kunya + first nasab
     normalizedNisbas.forEach(nisba => {
       patterns.add(`${basePattern} ${nisba}`);
     });
   }
 };
 
-// Then in the kunya + nasab section:
-if (allKunyaVariants.length > 0 && nasabParts.length > 0) {
+if (allKunyaVariants.length > 0 && nasabParts.parts.length > 0) {
   allKunyaVariants.forEach(kunyaVariant => {
     // Full kunya + first name
-    const kunyaFirstName = `${kunyaVariant} ${nasabParts[0]}`;
+    const kunyaFirstName = `${kunyaVariant} ${nasabParts.parts[0]}`;
     addKunyaNasabPatterns(kunyaFirstName, allowKunyaNasab);
     
     for (let i = 2; i <= limitedNasabParts.length; i++) {
-      const nasabString = buildNasabString(limitedNasabParts.slice(0, i));
+      const nasabString = buildNasabString(limitedNasabParts.slice(0, i), nasabParts.isFemale);
       addPatternVariants(`${kunyaVariant} ${nasabString}`);
     }
     
     for (let i = 2; i <= limitedNasabParts.length; i++) {
-      const nasabString = buildNasabString(limitedNasabParts.slice(1, i));
-      const ibnNasabString = `بن ${nasabString}`
-      addPatternVariants(`${kunyaVariant} ${ibnNasabString}`);
-    }
+      const nasabString = buildNasabString(limitedNasabParts.slice(1, i), nasabParts.isFemale);
+      const prefixedNasabString = nasabString.startsWith('بن') || nasabString.startsWith('بنت') ? 
+        nasabString : 
+        `بن ${nasabString}`;
+      addPatternVariants(`${kunyaVariant} ${prefixedNasabString}`);
+     }
   });
 }
 
 
-  const addNasabBasePatterns = (basePattern: string, includeBase: boolean) => {
+  const addNasabBasePatterns = (basePattern: string, includeBase: boolean, includeOneNasab: boolean) => {
     if (includeBase) {
-      // If allowNasabBase is true, add both base and nisba versions
+      // If allowTwoNasab is true, add both base and nisba versions
       addPatternVariants(basePattern);
     } else {
-      // If allowNasabBase is false, only add nisba versions
+      // If allowTwoNasab is false, only add nisba versions
       normalizedNisbas.forEach(nisba => {
         patterns.add(`${basePattern} ${nisba}`);
       });
     }
   };
   
-  if (nasabParts.length >= 3) {
+  if (nasabParts.parts.length >= 3) {
     // Always generate 3-part pattern when available
-    const threePartString = buildNasabString(limitedNasabParts.slice(0, 3));
+    const threePartString = buildNasabString(limitedNasabParts.slice(0, 3), nasabParts.isFemale);
     addPatternVariants(threePartString);
   }
   
   // 2-part pattern when allowbase is chosen
-  if (nasabParts.length >= 2) {
-    const twoPartString = buildNasabString(limitedNasabParts.slice(0, 2));
-    addNasabBasePatterns(twoPartString, allowNasabBase);
+  if (nasabParts.parts.length >= 2) {
+    const twoPartString = buildNasabString(limitedNasabParts.slice(0, 2), nasabParts.isFemale);
+    addNasabBasePatterns(twoPartString, allowTwoNasab, allowOneNasab);
   }
+  console.log(Array.from(patterns))
 
   return {
     searchPatterns: Array.from(patterns),

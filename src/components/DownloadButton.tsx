@@ -33,14 +33,15 @@ const DownloadButton: React.FC = () => {
 
     setIsDownloading(true);
     try {
-      const { kunyas, nasab, nisbas, allowRareKunyaNisba, allowNasabBase, allowKunyaNasab } = searchParams;
+      const { kunyas, nasab, nisbas, allowRareKunyaNisba, allowTwoNasab, allowKunyaNasab, allowOneNasab } = searchParams;
       const { searchPatterns, filterPatterns } = generateNamePatterns(
         kunyas, 
         nasab, 
         nisbas, 
         allowRareKunyaNisba,
-        allowNasabBase,
-        allowKunyaNasab
+        allowTwoNasab,
+        allowKunyaNasab,
+        allowOneNasab
       );
 
       const searchConfig: SearchConfig = {

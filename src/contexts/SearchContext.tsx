@@ -12,8 +12,9 @@ interface SearchParams {
   text_ids: number[];
   page: number;
   allowRareKunyaNisba: boolean;
-  allowNasabBase: boolean;
+  allowTwoNasab: boolean;
   allowKunyaNasab: boolean;
+  allowOneNasab: boolean;
 }
 
 interface SearchContextType {
@@ -52,8 +53,9 @@ const getEmptySearchParams = (): SearchParams => ({
   text_ids: [],
   page: 1,
   allowRareKunyaNisba: false,
-  allowNasabBase: false,
-  allowKunyaNasab: false
+  allowTwoNasab: false,
+  allowKunyaNasab: false,
+  allowOneNasab: false
 });
 
 const parseUrlParams = (search: string): SearchParams => {
@@ -76,8 +78,10 @@ const parseUrlParams = (search: string): SearchParams => {
     text_ids,
     page: parseInt(params.get('page') || '1', 10),
     allowRareKunyaNisba: params.get('allowRareKunyaNisba') === 'true',
-    allowNasabBase: params.get('allowNasabBase') === 'true',
-    allowKunyaNasab: params.get('allowKunyaNasab') === 'true'
+    allowTwoNasab: params.get('allowTwoNasab') === 'true',
+    allowKunyaNasab: params.get('allowKunyaNasab') === 'true',
+    allowOneNasab: params.get('allowKunyaNasab') === 'true'
+
   };
 };
 
@@ -121,8 +125,9 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         params.nasab,
         params.nisbas,
         params.allowRareKunyaNisba,
-        params.allowNasabBase,
-        params.allowKunyaNasab
+        params.allowTwoNasab,
+        params.allowKunyaNasab,
+        params.allowOneNasab
       );
 
       const searchConfig: SearchConfig = {
@@ -170,8 +175,9 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (updatedParams.text_ids.length > 0) params.append('text_ids', compressToRanges(updatedParams.text_ids));
     if (updatedParams.page !== 1) params.append('page', updatedParams.page.toString());
     if (updatedParams.allowRareKunyaNisba) params.append('allowRareKunyaNisba', 'true');
-    if (updatedParams.allowNasabBase) params.append('allowNasabBase', 'true');
+    if (updatedParams.allowTwoNasab) params.append('allowTwoNasab', 'true');
     if (updatedParams.allowKunyaNasab) params.append('allowKunyaNasab', 'true');
+    if (updatedParams.allowOneNasab) params.append('allowOneNasab', 'true');
 
     navigate({ search: params.toString() });
   }, [navigate, searchParams, selectedTextIds]);
