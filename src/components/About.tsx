@@ -7,12 +7,13 @@ const About: React.FC = () => {
             <div className='text-content'>
                 <div>
                     <h2>About The Project</h2>
-                    <p>This tool was developped to create and search different permutations (tabdīl pl. tabādīl) of a given Arabic name, using parts of the kunya and/or laqab, nasab, and nisba(s).</p>
+                    <p>This tool was developped to create and search different permutations (tabdīl pl. tabādīl) of a given Arabic name using parts of the kunya and/or laqab, nasab, and nisba(s). I designed it primarily to aid in finding information about lesser-known figures. If you are interested in finding any mention of, say, Ibn Taymiyya, then you may be better served by using other tools, be it al-Maktaba al-Shamela or my <a href="mutun.pages.dev">mutūn app</a>, which is currently in early stages of testing.</p>
                     <p></p>
                     <h2>How to Use</h2>
                     <ul>
                         <li>Enter in two of the three: kunya (e.g. Abū Manṣur), nasab (e.g. Maʿmar b. Aḥmad), and nisba (e.g. al-Iṣfahānī)</li>
                         <ul>
+                            <li>For the nasab, you should enter at least 2 names (e.g. أحمد بن محمد). However, if you only know his first name and at least his kunya (e.g. أبو منصور معمر), you can check the "Search Kunya + 1st nasab" box (see examples below).</li>
                             <li>You can also enter additional nisbas and/or a laqab</li>
                         </ul>
                         <li>There are three checkboxes, "2-Part Nasab", "Kunya + Nisba", and "Kunya + 1st Nasab" that are unchecked by default.</li>

@@ -21,8 +21,9 @@ const SearchForm: React.FC<SearchFormProps> = ({ showFilters, setShowFilters }) 
     searchParams.nisbas.length > 0 ? searchParams.nisbas : ['']
   );
   const [allowRareKunyaNisba, setAllowRareKunyaNisba] = useState(searchParams.allowRareKunyaNisba);
-  const [allowNasabBase, setAllowNasabBase] = useState(searchParams.allowNasabBase);
+  const [allowTwoNasab, setallowTwoNasab] = useState(searchParams.allowTwoNasab);
   const [allowKunyaNasab, setAllowKunyaNasab] = useState(searchParams.allowKunyaNasab);
+  const [allowOneNasab, setallowOneNasab] = useState(searchParams.allowOneNasab);
 
   const tooltips = {
     kunya: "Enter the kunya (e.g. أبو منصور)",
@@ -34,7 +35,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ showFilters, setShowFilters }) 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateInputs(kunyas, nasab, nisbas, allowRareKunyaNisba, allowNasabBase, allowKunyaNasab)) {
+    if (!validateInputs(kunyas, nasab, nisbas, allowRareKunyaNisba, allowTwoNasab, allowKunyaNasab)) {
       toast.error("Please enter at least 2 of: kunya, nasab, or nisba to search");
       return;
     }
@@ -44,7 +45,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ showFilters, setShowFilters }) 
       nasab,
       nisbas: nisbas.filter(Boolean),
       allowRareKunyaNisba,
-      allowNasabBase,
+      allowTwoNasab,
       allowKunyaNasab,
       page: 1
     });
@@ -58,7 +59,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ showFilters, setShowFilters }) 
     setNisbas(['']);
     setHasSearched(false);
     setAllowRareKunyaNisba(false);
-    setAllowNasabBase(false);
+    setallowTwoNasab(false);
     setAllowKunyaNasab(false);
     setSelectedTextIds([]);
     setSelectedCollections([]);
@@ -153,8 +154,8 @@ const SearchForm: React.FC<SearchFormProps> = ({ showFilters, setShowFilters }) 
             <label>
               <input
                 type="checkbox"
-                checked={allowNasabBase}
-                onChange={(e) => setAllowNasabBase(e.target.checked)}
+                checked={allowTwoNasab}
+                onChange={(e) => setallowTwoNasab(e.target.checked)}
               />
               Search 2-part nasab
             </label>
@@ -167,6 +168,16 @@ const SearchForm: React.FC<SearchFormProps> = ({ showFilters, setShowFilters }) 
                 onChange={(e) => setAllowKunyaNasab(e.target.checked)}
               />
               Search Kunya + 1st Nasab
+            </label>
+          </div>
+          <div className="form-checkbox">
+            <label>
+              <input
+                type="checkbox"
+                checked={allowOneNasab}
+                onChange={(e) => setallowOneNasab(e.target.checked)}
+              />
+              Search 1st Nasab + Nisba
             </label>
           </div>
         </div>
@@ -202,7 +213,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ showFilters, setShowFilters }) 
             disabled={isLoading}
             className="search-button"
           >
-            {isLoading ? 'Searching...' : 'Search'}
+            {isLoading ? 'Loading...' : 'Search'}
           </button>
 
           <button
