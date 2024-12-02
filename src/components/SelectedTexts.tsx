@@ -29,7 +29,7 @@ const Row: React.FC<RowProps> = ({ index, style, data }) => {
 
   return (
     <label
-      className="selected-text-item flex items-center px-4 hover:bg-gray-50"
+      className="flex"
       style={{
         ...style,
         cursor: 'pointer',
@@ -43,8 +43,8 @@ const Row: React.FC<RowProps> = ({ index, style, data }) => {
         onChange={() => onToggle(text.text_id)}
         className="mr-3 flex-shrink-0"
       />
-      <div className="flex flex-col overflow-hidden">
-        <span className="text-title font-medium overflow-hidden text-ellipsis whitespace-nowrap" dir="rtl">
+      <div className="flex">
+        <span dir="rtl">
           {text.title_ar} {authorInfo}
         </span>
       </div>

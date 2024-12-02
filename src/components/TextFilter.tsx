@@ -22,14 +22,27 @@ interface RowProps {
 const Row: React.FC<RowProps> = ({ index, style, data }) => {
   const { items, selectedTexts, onToggle } = data;
   const text = items[index];
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
-  const authorInfo = text.author_sh_ar
-    ? ` - ${text.author_sh_ar}${text.author_death ? ` (${text.author_death})` : ''}`
-    : '';
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const truncateTitle = (title: string): string => {
+    if (windowWidth < 468 && title.length > 30) {
+      return title.substring(0, 20) + '...';
+    }
+    return title;
+  };
 
   return (
     <label
-      className="text-item flex items-center px-4 hover:bg-gray-50"
+      className="flex"
       style={{
         ...style,
         cursor: 'pointer',
@@ -43,15 +56,14 @@ const Row: React.FC<RowProps> = ({ index, style, data }) => {
         onChange={() => onToggle(text.text_id)}
         className="mr-3 flex-shrink-0"
       />
-      <div className="flex flex-col overflow-hidden">
-        <span className="text-title font-medium overflow-hidden text-ellipsis whitespace-nowrap" dir="rtl">
-          {text.title_ar} {authorInfo}
+      <div className="flex">
+        <span dir="rtl">
+          {truncateTitle(text.title_ar)} <span className='author-shuhra'>- {text.author_sh_ar}</span> (ت {text.author_death})
         </span>
       </div>
     </label>
   );
 };
-
 const TextFilter: React.FC = () => {
   const { texts, isLoading } = useMetadata();
   const {
