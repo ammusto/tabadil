@@ -74,13 +74,21 @@ const orderPatternsByLength = (patterns: string[]): string[] => {
 export const searchOpenSearch = async (
   config: SearchConfig
 ): Promise<{ results: SearchResult[]; total: number }> => {
+  if (!config.patterns || config.patterns.length === 0) {
+    throw new Error('Search Error: Invalid query. Please check About->How-To for valid query format.');
+  }
+
+  const orderedPatterns = orderPatternsByLength(config.patterns);
+  const should = orderedPatterns.map(createExactMatchQuery);
+
+  if (should.length === 0) {
+    throw new Error('Search Error: Unable to create valid search query');
+  }
+
   const headers = new Headers({
     'Authorization': 'Basic ' + btoa(`${API_USER}:${API_PASS}`),
     'Content-Type': 'application/json'
   });
-
-  const orderedPatterns = orderPatternsByLength(config.patterns);
-  const should = orderedPatterns.map(createExactMatchQuery);
 
   const query: any = {
     from: config.from,
@@ -133,7 +141,7 @@ export const searchOpenSearch = async (
     });
 
     if (!response.ok) {
-      throw new Error(`Search failed: ${response.statusText}`);
+      throw new Error(`Search Error: ${response.statusText}`);
     }
 
     const data: OpenSearchResponse = await response.json();
@@ -153,6 +161,6 @@ export const searchOpenSearch = async (
     };
   } catch (error) {
     console.error('Search error:', error);
-    throw error;
+    throw error instanceof Error ? error : new Error('Search Error: An unexpected error occurred');
   }
 };

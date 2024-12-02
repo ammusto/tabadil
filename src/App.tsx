@@ -6,6 +6,7 @@ import Layout from 'components/Layout';
 import SearchPage from './components/SearchPage';
 import About from 'components/About';
 import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 
 const App: React.FC = () => {
