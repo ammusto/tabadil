@@ -151,28 +151,8 @@ button:hover {
   direction: ltr;
 }
 
-@media (max-width: 768px) {
-  .nav-container {
-    flex-direction: row;
-    align-items: flex-start;
-
-  }
-
-  .nav-left,
-  .nav-right {
-    width: 30%;
-  }
-
-  .nav-center {
-    width: 60% !important;
-  }
-
-}
 
 @media (max-width: 468px) {
-  .search-layout {
-    flex-direction: column;
-  }
 
   .search-sidebar {
     width: 100%;

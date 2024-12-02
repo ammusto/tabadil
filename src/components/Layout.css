@@ -93,16 +93,9 @@ header {
     justify-content: center;
     align-items: center;
     margin: 0 auto;
+    padding-right:175px;
 
   }
-
-  .nav-right {
-    display: flex;
-    align-items: center;
-    width:175px;
-    text-align: center;
-  }
-
   
   .nav-left {
     display: flex;
@@ -119,13 +112,23 @@ header {
 
     }
   
-    .nav-left,
-    .nav-right {
+    .nav-left {
       width: 30%;
     }
 
     .nav-center {
       width:60% !important;
+      padding-right:30%;
+    }
+
+    .nav-left {
+      width: 50%;
+    }
+
+    .nav-center {
+      width:50%;
+      padding-right:5%;
+      justify-content: right;
     }
   
   }
@@ -137,18 +140,11 @@ header {
 
     }
   
-    .nav-left,
-    .nav-right {
-      width: 20%;
-    }
-
-    .nav-center {
-      width:60% !important;
-    }
   }
 
   .header-logo {
     font-size: 2rem;
     font-weight:bold;
+    padding-left:2rem;
   }
   

@@ -110,19 +110,34 @@
 }
 
 @media (max-width: 768px) {
-  .nav-container {
-    flex-direction: row;
-    align-items: flex-start;
 
+  .search-container {
+    padding: .5rem
   }
 
-  .nav-left,
-  .nav-right {
-    width: 30%;
+  .search-layout {
+    flex-direction: column;
+  }
+  .search-sidebar {
+    width:100%;
+  }
+  .search-main {
+    width:100% !important;
   }
 
-  .nav-center {
-    width: 60% !important;
+}
+
+@media (max-width: 600px) {
+  .search-form {
+    flex-direction: column;
+  }
+
+  .input-group {
+    width: 100%;
+  }
+
+  .search-form-buttons {
+    width: 100%;
   }
 
 }
