@@ -110,6 +110,7 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (fetchedRanges.current.has(rangeKey)) return;
     
     setIsLoading(true);
+    setError(null);
     
     try {
       const from = (batchStartPage - 1) * ITEMS_PER_PAGE;
