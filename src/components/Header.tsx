@@ -22,8 +22,7 @@ const Header: React.FC = () => {
               </Link>
             </li>
           </div>
-          <div className="nav-right">
-          </div>
+
         </nav>
       </div>
     </header>
