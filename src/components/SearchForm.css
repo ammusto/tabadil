@@ -139,6 +139,27 @@
   .search-form-buttons {
     width: 100%;
   }
+  
+  .space-y-10 {
+    flex-direction: row;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: space-between;
+
+  }
+
+  .multi-select-container {
+    flex: 1 1 48%;
+    box-sizing: border-box;
+
+  }
+
+  .date-slider-container {
+    width:80%;
+    margin:auto;
+  }
+
 
 }
 
