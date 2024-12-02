@@ -54,3 +54,52 @@ span.highlight {
 .results-list .result-item:last-child {
     border-bottom: 0px !important;
 }
+
+
+@media (max-width: 468px) {
+    .search-form {
+      flex-direction: column;
+    }
+  
+    .input-group {
+      width: 100%;
+    }
+  
+    .search-form-buttons {
+      width: 100%;
+    }
+  
+    .search-container {
+      padding: .5rem
+    }
+  
+    .result-item .result-title {
+      width: 30%;
+      box-sizing: border-box;
+      padding:.25rem
+
+    }
+  
+    .result-item .highlights {
+      width: 55%;
+      box-sizing: border-box;
+      padding:.25rem
+
+    }
+  
+    .result-item .result-page {
+      text-align: left;
+      width: 15%;
+      box-sizing: border-box;
+      padding:.25rem
+
+    }
+
+    .result-item {
+        padding:.25rem
+    }
+  
+  .author-shuhra {
+    display: none;
+  }
+  }

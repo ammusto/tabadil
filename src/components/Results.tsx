@@ -33,7 +33,7 @@ const ResultTableHeader: React.FC = () => (
   <div className='result-item bold'>
     <div className="result-title">Title</div>
     <div className="highlights center">Result</div>
-    <div className="result-page center">Vol:Page</div>
+    <div className="result-page center">Vol:Pg</div>
   </div>
 );
 
