@@ -70,20 +70,22 @@ export const generateNamePatterns = (
 
   // Helper to build full nasab string from parts
   const buildNasabString = (parts: string[], isFemale: boolean): string => {
-    if (parts.length === 0) return '';
-    
-    const firstPart = parts[0];
-    const remainingParts = parts.slice(1);
-    
-    const firstJoin = firstPart.startsWith('بنت') ? firstPart : (isFemale ? `بنت ${firstPart}` : firstPart);
-    const restJoined = remainingParts.map(part => `بن ${part}`).join(' ');
-    
-    return [firstJoin, restJoined].filter(Boolean).join(' ');
+    if (!parts?.length) return '';
+
+    if (parts[0].startsWith('بن') || parts[0].startsWith('بنت')) {
+      return parts.join(' بن ');
+    }
+
+    const connector = isFemale ? ' بنت ' : ' بن ';
+    return parts.join(connector);
   };
 
+
   // Helper to add patterns with and without nisba
-  const addPatternVariants = (basePattern: string) => {
-    patterns.add(basePattern);
+  const addPatternVariants = (basePattern: string, includeBase: boolean) => {
+    if (includeBase) {
+      patterns.add(basePattern);
+    }
     normalizedNisbas.forEach(nisba => {
       patterns.add(`${basePattern} ${nisba}`);
     });
@@ -99,66 +101,87 @@ export const generateNamePatterns = (
     });
   }
 
-// kunya + first name patterns
-const addKunyaNasabPatterns = (basePattern: string, includeBase: boolean) => {
-  if (includeBase) {
-    // If allowKunyaNasab is true, add both base pattern (kunya + 1st nasab) and nisba versions
-    patterns.add(basePattern);
-    normalizedNisbas.forEach(nisba => {
-      patterns.add(`${basePattern} ${nisba}`);
-    });
-  } else {
-    // If allowKunyaNasab is false, only add nisba versions to kunya + first nasab
-    normalizedNisbas.forEach(nisba => {
-      patterns.add(`${basePattern} ${nisba}`);
+
+  // Kunya patterns + nasab patterns
+  if (allKunyaVariants.length > 0 && nasabParts.parts.length > 0) {
+    allKunyaVariants.forEach(kunyaVariant => {
+      // If allowKunyaNasab is true, add both base pattern (kunya + 1st nasab)
+      if (allowKunyaNasab) {
+        addPatternVariants(`${kunyaVariant} ${nasabParts.parts[0]}`, true);
+      }
+
+      // permuations of kunya + nasab, e.g. (أبو منصور معمر بن أحمد بن زياد)
+      for (let i = 2; i <= limitedNasabParts.length; i++) {
+
+        // kunya + 1st nasab + nisba 
+        addPatternVariants(`${kunyaVariant} ${nasabParts.parts[0]}`, false);
+
+        // kunya + nasab permutations w/ 2 nasab names
+        addPatternVariants(`${kunyaVariant} ${buildNasabString(limitedNasabParts.slice(0, i), nasabParts.isFemale)}`, true);
+
+        const prefix = nasabParts.isFemale ? 'بنت' : 'بن';
+        addPatternVariants(`${kunyaVariant} ${prefix} ${buildNasabString(limitedNasabParts.slice(1, i), nasabParts.isFemale)}`, true);
+
+        // kunya + nasab minus first name, e.g. (أبو منصور بن أحمد بن زياد)
+        if (i === limitedNasabParts.length && !limitedNasabParts[0].trim().startsWith('بن')) {
+          const prefix = nasabParts.isFemale ? 'بنت' : 'بن';
+          console.log("OK")
+          addPatternVariants(`${kunyaVariant} ${prefix} ${buildNasabString(limitedNasabParts.slice(1, i), nasabParts.isFemale)}`, true);
+        }
+      }
     });
   }
-};
-
-if (allKunyaVariants.length > 0 && nasabParts.parts.length > 0) {
-  allKunyaVariants.forEach(kunyaVariant => {
-    // Full kunya + first name
-    const kunyaFirstName = `${kunyaVariant} ${nasabParts.parts[0]}`;
-    addKunyaNasabPatterns(kunyaFirstName, allowKunyaNasab);
-    
-    for (let i = 2; i <= limitedNasabParts.length; i++) {
-      const nasabString = buildNasabString(limitedNasabParts.slice(0, i), nasabParts.isFemale);
-      addPatternVariants(`${kunyaVariant} ${nasabString}`);
-    }
-    
-    for (let i = 2; i <= limitedNasabParts.length; i++) {
-      const nasabString = buildNasabString(limitedNasabParts.slice(1, i), nasabParts.isFemale);
-      const prefixedNasabString = nasabString.startsWith('بن') || nasabString.startsWith('بنت') ? 
-        nasabString : 
-        `بن ${nasabString}`;
-      addPatternVariants(`${kunyaVariant} ${prefixedNasabString}`);
-     }
-  });
-}
-
+  console.log(nasabParts.parts)
 
   const addNasabBasePatterns = (basePattern: string, includeBase: boolean, includeOneNasab: boolean) => {
     if (includeBase) {
-      // If allowTwoNasab is true, add both base and nisba versions
-      addPatternVariants(basePattern);
-    } else {
-      // If allowTwoNasab is false, only add nisba versions
+      // If allowTwoNasab is true, add 2-part nasab only
+      addPatternVariants(basePattern, true);
+    }
+    if (includeOneNasab) {
+      const firstPart = nasabParts.parts[0].replace(/^(?:بن|بنت)\s+/, '');
       normalizedNisbas.forEach(nisba => {
-        patterns.add(`${basePattern} ${nisba}`);
+        patterns.add(`${firstPart} ${nisba}`);
       });
     }
   };
-  
+
+  // if only single nasab name, no kunya, and nisba are provided, then generate pattern
+  if (nasabParts.parts.length == 1 && allKunyaVariants.length == 0 && normalizedNisbas.length >= 1) {
+    addPatternVariants(nasabParts.parts[0], false)
+  }
+
+  if (allowOneNasab && normalizedNisbas.length >= 1) {
+    addPatternVariants(nasabParts.parts[0], false)
+
+  }
+
   if (nasabParts.parts.length >= 3) {
     // Always generate 3-part pattern when available
     const threePartString = buildNasabString(limitedNasabParts.slice(0, 3), nasabParts.isFemale);
-    addPatternVariants(threePartString);
+    addPatternVariants(threePartString, true);
   }
-  
+
   // 2-part pattern when allowbase is chosen
   if (nasabParts.parts.length >= 2) {
     const twoPartString = buildNasabString(limitedNasabParts.slice(0, 2), nasabParts.isFemale);
-    addNasabBasePatterns(twoPartString, allowTwoNasab, allowOneNasab);
+
+    //2-part pattern with nisba
+    addPatternVariants(twoPartString, false);
+
+    //2-part pattern with incomplete nisba, e.g. starting with بنت or بن or ابن
+    if (nasabParts.parts[0].trim().startsWith('بنت')) {
+      addNasabBasePatterns(twoPartString, true, false);
+    } else if (nasabParts.parts[0].trim().startsWith('بن')) {
+      limitedNasabParts[0] = limitedNasabParts[0].replace('بن', 'ابن');
+      const twoPartString = buildNasabString(limitedNasabParts.slice(0, 2), nasabParts.isFemale);
+      addNasabBasePatterns(twoPartString, true, false);
+    } else if (nasabParts.parts[0].trim().startsWith('ابن')) {
+      const twoPartString = buildNasabString(limitedNasabParts.slice(0, 2), nasabParts.isFemale);
+      addNasabBasePatterns(twoPartString, true, false);
+    } else {
+      addNasabBasePatterns(twoPartString, allowTwoNasab, allowOneNasab);
+    }
   }
   console.log(Array.from(patterns))
 
