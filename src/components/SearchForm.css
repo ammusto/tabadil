@@ -106,20 +106,20 @@
 .form-checkbox {
   text-align: left;
   direction: ltr;
-  margin-top: 0px;
+  margin-top: 2px;
+  display: flex;
+  align-items: center; 
+}
+
+
+.form-checkbox .tooltip-container {
+padding-left:5px;
+height:18px;
 }
 
 .search-input-wrapper {
   position: relative;
   width: 100%;
-}
-
-.tooltip-wrapper {
-  position: absolute;
-  left: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 10;
 }
 
 .search-input {

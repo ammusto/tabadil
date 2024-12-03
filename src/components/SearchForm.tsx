@@ -3,6 +3,7 @@ import { useSearch } from '../contexts/SearchContext';
 import { toast } from 'react-toastify';
 import SearchInput from './SearchInput';
 import './SearchForm.css';
+import InfoTooltip from './InfoTooltip';
 
 interface SearchFormProps {
   showFilters: boolean;
@@ -23,19 +24,18 @@ const SearchForm: React.FC<SearchFormProps> = ({ showFilters, setShowFilters }) 
   const [allowRareKunyaNisba, setAllowRareKunyaNisba] = useState(searchParams.allowRareKunyaNisba);
   const [allowTwoNasab, setallowTwoNasab] = useState(searchParams.allowTwoNasab);
   const [allowKunyaNasab, setAllowKunyaNasab] = useState(searchParams.allowKunyaNasab);
-  const [allowOneNasab, setallowOneNasab] = useState(searchParams.allowOneNasab);
+  const [allowOneNasab, setAllowOneNasab] = useState(searchParams.allowOneNasab);
 
   const tooltips = {
-    kunya: "Enter the kunya (e.g. أبو منصور)",
-    laqab: "Enter a laqab (e.g. قوام السنة)",
-    nasab: "Enter nasab with at least two names (e.g. معمر بن أحمد)",
-    nisba: "Enter a nisba (e.g. الأصبهاني)"
+    kunya: "Enter the kunya or laqab, e.g. أبو منصور or قوام السنة",
+    nasab: "Enter nasab with at least two names, e.g. معمر بن أحمد",
+    nisba: "Enter a nisba, e.g. الأصبهاني"
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateInputs(kunyas, nasab, nisbas, allowRareKunyaNisba, allowTwoNasab, allowKunyaNasab)) {
+    if (!validateInputs(kunyas, nasab, nisbas, allowRareKunyaNisba, allowTwoNasab, allowKunyaNasab, allowOneNasab)) {
       toast.error("Please enter at least 2 of: kunya, nasab, or nisba to search");
       return;
     }
@@ -47,6 +47,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ showFilters, setShowFilters }) 
       allowRareKunyaNisba,
       allowTwoNasab,
       allowKunyaNasab,
+      allowOneNasab,
       page: 1
     });
     setHasSearched(true);
@@ -61,6 +62,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ showFilters, setShowFilters }) 
     setAllowRareKunyaNisba(false);
     setallowTwoNasab(false);
     setAllowKunyaNasab(false);
+    setAllowOneNasab(false);
     setSelectedTextIds([]);
     setSelectedCollections([]);
     setSelectedGenres([]);
@@ -111,7 +113,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ showFilters, setShowFilters }) 
                 value={kunya}
                 onChange={(value) => updateKunya(index, value)}
                 placeholder={index === 1 ? 'لقب' : 'كنية'}
-                tooltip={index === 1 ? tooltips.laqab : tooltips.kunya}
+                tooltip={index === 0 ? tooltips.kunya : undefined}
                 dir="rtl"
               />
               {index > 0 && (
@@ -137,8 +139,10 @@ const SearchForm: React.FC<SearchFormProps> = ({ showFilters, setShowFilters }) 
                 checked={allowRareKunyaNisba}
                 onChange={(e) => setAllowRareKunyaNisba(e.target.checked)}
               />
-              Search Kunya + Nisba
+              Include kunya + nisba
             </label>
+            <InfoTooltip content="This will include a search for just the kunya and nisba, e.g. أبو منصور الأصبهاني" />
+
           </div>
         </div>
 
@@ -157,8 +161,11 @@ const SearchForm: React.FC<SearchFormProps> = ({ showFilters, setShowFilters }) 
                 checked={allowTwoNasab}
                 onChange={(e) => setallowTwoNasab(e.target.checked)}
               />
-              Search 2-part nasab
+              Include 2-part nasab
+
             </label>
+            <InfoTooltip content="This will include a search for just the two first names in the nasab, e.g. محمد بن أحمد" />
+
           </div>
           <div className="form-checkbox">
             <label>
@@ -167,18 +174,24 @@ const SearchForm: React.FC<SearchFormProps> = ({ showFilters, setShowFilters }) 
                 checked={allowKunyaNasab}
                 onChange={(e) => setAllowKunyaNasab(e.target.checked)}
               />
-              Search Kunya + 1st Nasab
+              Include kunya + 1st nasab
+
             </label>
+            <InfoTooltip content="This will include a search for just the kunya and first name in the nasab, e.g. أبو محمد أحمد" />
+
           </div>
           <div className="form-checkbox">
             <label>
               <input
                 type="checkbox"
                 checked={allowOneNasab}
-                onChange={(e) => setallowOneNasab(e.target.checked)}
+                onChange={(e) => setAllowOneNasab(e.target.checked)}
               />
-              Search 1st Nasab + Nisba
+              Include 1st nasab + nisba
+
             </label>
+            <InfoTooltip content="This will include a search for just the first name in the nasab and the nisba, e.g. محمد الدمشقي" />
+
           </div>
         </div>
 
@@ -189,7 +202,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ showFilters, setShowFilters }) 
                 value={nisba}
                 onChange={(value) => updateNisba(index, value)}
                 placeholder={`نسبة ${index + 1}`}
-                tooltip={tooltips.nisba}
+                tooltip={index === 0 ? tooltips.nisba : undefined}
                 dir="rtl"
               />
               {index > 0 && (
@@ -244,12 +257,13 @@ const validateInputs = (
   allowRare: boolean,
   allowNasab: boolean,
   allowKunyaNasab: boolean,
+  allowOneNasab: boolean
 ): boolean => {
   const hasKunya = kunyas.some(kunya => kunya.trim().length > 0);
   const hasNasab = nasab.trim().length > 0;
   const hasNisba = nisbas.some(nisba => nisba.trim().length > 0);
 
-  if (allowRare && allowNasab && hasKunya && hasNisba && allowKunyaNasab) {
+  if (allowRare && allowNasab && hasKunya && hasNisba && allowKunyaNasab && allowOneNasab) {
     return true;
   }
 

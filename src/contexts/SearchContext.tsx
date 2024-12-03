@@ -80,7 +80,7 @@ const parseUrlParams = (search: string): SearchParams => {
     allowRareKunyaNisba: params.get('allowRareKunyaNisba') === 'true',
     allowTwoNasab: params.get('allowTwoNasab') === 'true',
     allowKunyaNasab: params.get('allowKunyaNasab') === 'true',
-    allowOneNasab: params.get('allowKunyaNasab') === 'true'
+    allowOneNasab: params.get('allowOneNasab') === 'true'
 
   };
 };

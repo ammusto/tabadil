@@ -11,16 +11,18 @@ const About: React.FC = () => {
                     <p></p>
                     <h2>How to Use</h2>
                     <ul>
-                        <li>Enter in two of the three: kunya (e.g. Abū Manṣur), nasab (e.g. Maʿmar b. Aḥmad), and nisba (e.g. al-Iṣfahānī)</li>
+                        <li>Enter in two of the three: kunya (e.g. أبو منصور), nasab (e.g. معمر بن أحمد بن زياد), and nisba (e.g. الأصبهاني)</li>
                         <ul>
                             <li>For the nasab, you should enter at least 2 names (e.g. أحمد بن محمد). However, if you only know his first name and at least his kunya (e.g. أبو منصور معمر), you can check the "Search Kunya + 1st nasab" box (see examples below).</li>
+                            <li>If you don't know the first name of the nasab (e.g. أم القاسم بنت محمد بن عبد الله), you can just put what you know in (e.g.  بنت محمد بن عبد الله)</li>
                             <li>You can also enter additional nisbas and/or a laqab</li>
                         </ul>
-                        <li>There are three checkboxes, "2-Part Nasab", "Kunya + Nisba", and "Kunya + 1st Nasab" that are unchecked by default.</li>
+                        <li>There are four checkboxes, "2-Part Nasab", "Kunya + Nisba", "Kunya + 1st Nasab," and "1st Nasab + Nisba" that are unchecked by default.</li>
                         <ul>
                             <li>Checking "2-part nasab" will perform a search just based on the first two names in the nasab, which can produce an extreme amount of results depending on the commonality of the names (see example below).</li>
-                            <li>Checking "kunya + nisba" will include just the kunya and nisba in a search (see example below). </li>
-                            <li>Checking "kunya + 1st nasab" will include just the kunya and first name in the nasab in a search (see example below). </li>
+                            <li>Checking "kunya + nisba" will include a search for just the kunya and nisba in a search (see example below). </li>
+                            <li>Checking "kunya + 1st nasab" will include a search for just the kunya and first name in the nasab in a search (see example below). </li>
+                            <li>Checking "1st nasab + nisba" will include a search for just the first name in the nasab plus the nisba (see example below). </li>
                         </ul>
                         <li>By default, this searches all 10,000+ texts from the <a href="mutun.pages.dev">mutūn corpus</a>, but you can filter and select a subset of these texts.</li>
                         <li>It will automatically search for: أبو، أبي، and أبا</li>
@@ -46,6 +48,7 @@ const About: React.FC = () => {
                         <li className='red'>اب* منصور الاصبهاني (kunya + nisba)</li>
                         <li className='red'>اب* منصور معمر (1st nasab + kunya)</li>
                         <li className='red'>معمر بن احمد (2-part nasab)</li>
+                        <li className='red'>معمر الاصبهاني (1st nasab + nisba)</li>
                     </ul>
                 </div>
                 <div>
