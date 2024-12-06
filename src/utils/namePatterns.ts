@@ -147,7 +147,7 @@ export const generateNamePatterns = (
   };
 
   // if only single nasab name, no kunya, and nisba are provided, then generate pattern
-  if (nasabParts.parts.length == 1 && allKunyaVariants.length == 0 && normalizedNisbas.length >= 1) {
+  if (nasabParts.parts.length === 1 && allKunyaVariants.length === 0 && normalizedNisbas.length >= 1) {
     addPatternVariants(nasabParts.parts[0], false)
   }
 
