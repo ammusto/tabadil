@@ -16,6 +16,7 @@
 
 .tooltip-wrapper {
   position: absolute;
+  height:18px;
   left: 8px;
   top: 50%;
   transform: translateY(-50%);

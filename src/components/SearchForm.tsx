@@ -112,7 +112,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ showFilters, setShowFilters }) 
               <SearchInput
                 value={kunya}
                 onChange={(value) => updateKunya(index, value)}
-                placeholder={index === 1 ? 'لقب' : 'كنية'}
+                placeholder='كنية/لقب'
                 tooltip={index === 0 ? tooltips.kunya : undefined}
                 dir="rtl"
               />
@@ -201,7 +201,7 @@ const SearchForm: React.FC<SearchFormProps> = ({ showFilters, setShowFilters }) 
               <SearchInput
                 value={nisba}
                 onChange={(value) => updateNisba(index, value)}
-                placeholder={`نسبة ${index + 1}`}
+                placeholder='نسبة'
                 tooltip={index === 0 ? tooltips.nisba : undefined}
                 dir="rtl"
               />

@@ -39,7 +39,7 @@ div {
 }
 
 a {
-  color:black;
+  color: black;
   text-decoration: underline;
 }
 
@@ -48,7 +48,7 @@ a:hover {
 }
 
 h2 {
-  margin:0 !important;
+  margin: 0 !important;
 }
 
 
@@ -77,26 +77,27 @@ button:hover {
 }
 
 .text-content {
-  max-width:70rem;
-  margin:auto;
-  padding:1rem;
-  border-radius:5px;
+  max-width: 70rem;
+  margin: auto;
+  padding: 1rem;
+  border-radius: 5px;
 }
 
 .text-content div {
-  padding:1rem;
+  padding: 1rem;
 }
 
 .permuations-list {
-  width:50%;
+  width: 50%;
   direction: rtl;
 }
+
 .permuations-list ul {
   list-style-type: none;
 }
 
 .red {
-  color:Red;
+  color: Red;
 }
 
 .bold {
@@ -160,6 +161,13 @@ button:hover {
   direction: ltr;
 }
 
+@media (max-width: 768px) {
+
+  .permuations-list {
+    width: 100%;
+    direction: rtl;
+  }
+}
 
 @media (max-width: 468px) {
 
@@ -185,6 +193,8 @@ button:hover {
     box-sizing: border-box;
 
   }
+
+
 
   .date-slider-container {
     flex: 0 0 100%;
