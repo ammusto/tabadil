@@ -125,13 +125,11 @@ export const generateNamePatterns = (
         // kunya + nasab minus first name, e.g. (أبو منصور بن أحمد بن زياد)
         if (i === limitedNasabParts.length && !limitedNasabParts[0].trim().startsWith('بن')) {
           const prefix = nasabParts.isFemale ? 'بنت' : 'بن';
-          console.log("OK")
           addPatternVariants(`${kunyaVariant} ${prefix} ${buildNasabString(limitedNasabParts.slice(1, i), nasabParts.isFemale)}`, true);
         }
       }
     });
   }
-  console.log(nasabParts.parts)
 
   const addNasabBasePatterns = (basePattern: string, includeBase: boolean, includeOneNasab: boolean) => {
     if (includeBase) {
@@ -183,7 +181,6 @@ export const generateNamePatterns = (
       addNasabBasePatterns(twoPartString, allowTwoNasab, allowOneNasab);
     }
   }
-  console.log(Array.from(patterns))
 
   return {
     searchPatterns: Array.from(patterns),
