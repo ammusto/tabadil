@@ -1,8 +1,3 @@
-// types.ts
-
-// types.ts
-
-
 export interface Author {
   au_id: number;
   au_ar: string;
@@ -28,6 +23,13 @@ export interface Text {
   tags: string[];
   tok_len?: number;
   pg_len?: number;
+}
+
+export interface Page {
+  page_id: number;
+  page_num: string;
+  page_content: string;
+  vol: string;
 }
 
 export interface SearchResult {
@@ -60,4 +62,11 @@ export interface MetadataContextType {
 export interface DateRange {
   min: number;
   max: number;
+}
+
+export interface TextMetadata {
+  text: Text | null;
+  author: Author | null;
+  isLoading: boolean;
+  error: Error | null;
 }

@@ -1,8 +1,80 @@
 import * as XLSX from 'xlsx';
 import { Author, Text } from '../types';
 
+const DB_NAME = 'metadata_cache';
+const STORE_NAME = 'metadata';
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+
+interface CachedData {
+  timestamp: number;
+  data: {
+    texts: Text[];
+    authors: Author[];
+    collections: string[];
+    genres: string[];
+  };
+}
+
+const openDB = (): Promise<IDBDatabase> => {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, 1);
+
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result);
+
+    request.onupgradeneeded = (event) => {
+      const db = (event.target as IDBOpenDBRequest).result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME);
+      }
+    };
+  });
+};
+
+const getCache = async (): Promise<CachedData | null> => {
+  try {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(STORE_NAME, 'readonly');
+      const store = transaction.objectStore(STORE_NAME);
+      const request = store.get('metadata');
+
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => {
+        const data = request.result as CachedData;
+        if (!data || Date.now() - data.timestamp > CACHE_DURATION) {
+          resolve(null);
+        } else {
+          resolve(data);
+        }
+      };
+    });
+  } catch (error) {
+    console.error('Error reading from cache:', error);
+    return null;
+  }
+};
+
+const setCache = async (data: CachedData['data']): Promise<void> => {
+  try {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(STORE_NAME, 'readwrite');
+      const store = transaction.objectStore(STORE_NAME);
+      const request = store.put({
+        timestamp: Date.now(),
+        data
+      }, 'metadata');
+
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve();
+    });
+  } catch (error) {
+    console.error('Error writing to cache:', error);
+  }
+};
+
 const processMetadata = (texts: any[], authors: any[]) => {
-  // Process authors first to create a lookup map
   const authorMap = new Map<number, Author>();
 
   const processedAuthors: Author[] = authors.map(author => {
@@ -18,9 +90,7 @@ const processMetadata = (texts: any[], authors: any[]) => {
     return processedAuthor;
   });
 
-  // Process texts and include author information
   let processedTexts: Text[] = texts.map(text => {
-    // Parse author IDs from the space-separated string
     const au_ids = text.au_id
       ? text.au_id.toString()
           .split(' ')
@@ -28,20 +98,13 @@ const processMetadata = (texts: any[], authors: any[]) => {
           .filter((id: number): boolean => !isNaN(id))
       : [];
 
-    // Look up the full author objects
     const authors = au_ids
-      .map((id: number): Author | undefined => {
-        const author = authorMap.get(id);
-        if (!author) {
-          console.log(`Author not found for ID: ${id}`);
-        }
-        return author;
-      })
+      .map((id: number): Author | undefined => authorMap.get(id))
       .filter((author: Author | undefined): author is Author => Boolean(author));
 
     const firstAuthor = authors[0];
 
-    const processedText: Text = {
+    return {
       text_id: parseInt(text.text_id),
       text_uri: text.text_uri,
       title_ar: text.title_ar,
@@ -58,11 +121,8 @@ const processMetadata = (texts: any[], authors: any[]) => {
       tok_len: text.tok_len ? parseInt(text.tok_len) : undefined,
       pg_len: text.pg_len ? parseInt(text.pg_len) : undefined,
     };
-
-    return processedText;
   });
 
-  // Sort texts by text_uri
   processedTexts.sort((a, b) => {
     if (!a.text_uri && !b.text_uri) return 0;
     if (!a.text_uri) return 1;
@@ -78,22 +138,6 @@ const processMetadata = (texts: any[], authors: any[]) => {
   };
 };
 
-export const loadMetadata = async () => {
-  try {
-    const [textsData, authorsData] = await Promise.all([
-      loadExcelFile('/texts.xlsx'),
-      loadExcelFile('/authors.xlsx')
-    ]);
-
-    const processed = processMetadata(textsData, authorsData);
-
-    return processed;
-  } catch (error) {
-    console.error('Error loading metadata:', error);
-    throw error;
-  }
-};
-
 const loadExcelFile = async (url: string): Promise<any[]> => {
   try {
     const response = await fetch(url);
@@ -103,6 +147,34 @@ const loadExcelFile = async (url: string): Promise<any[]> => {
     return XLSX.utils.sheet_to_json(worksheet);
   } catch (error) {
     console.error(`Error loading Excel file from ${url}:`, error);
+    throw error;
+  }
+};
+
+export const loadMetadata = async () => {
+  try {
+    // Check cache first
+    const cached = await getCache();
+    if (cached) {
+      console.log('Using cached metadata');
+      return cached.data;
+    }
+
+    // If no cache or expired, load from files
+    console.log('Loading metadata from files');
+    const [textsData, authorsData] = await Promise.all([
+      loadExcelFile('/texts.xlsx'),
+      loadExcelFile('/authors.xlsx')
+    ]);
+
+    const processed = processMetadata(textsData, authorsData);
+    
+    // Cache the results
+    await setCache(processed);
+
+    return processed;
+  } catch (error) {
+    console.error('Error loading metadata:', error);
     throw error;
   }
 };

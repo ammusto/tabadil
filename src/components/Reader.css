@@ -1,0 +1,124 @@
+.reader-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.metadata-cards {
+    margin-bottom: 2rem;
+}
+
+.metadata-section {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.metadata-section h3 {
+    margin-top: 0;
+    margin-bottom: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.header-border-bottom {
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: .5rem;
+    margin-bottom:1rem !important;
+}
+
+.metadata-grid {
+    display: grid;
+    grid-template-columns: 40% 40% 20%;
+    gap: 2rem;
+}
+
+.metadata-grid p {
+    margin: 0.125rem 0;
+}
+
+.reader-content {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    padding: 2rem;
+    margin-bottom: 1rem;
+    line-height: 1.8;
+    font-size: 1.1rem;
+}
+
+.error {
+    color: #ef4444;
+    text-align: center;
+    padding: 2rem;
+    background: white;
+    border-radius: 0.5rem;
+    border: 1px solid #ef4444;
+}
+
+@media (max-width: 768px) {
+    .metadata-grid {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    .reader-container {
+        padding: 1rem;
+    }
+
+    .metadata-section {
+        padding: 1rem;
+    }
+
+    .reader-content {
+        padding: 1rem;
+        font-size: 1rem;
+    }
+}
+
+.pagination {
+    max-width: 100%;
+    margin-top: 20px;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.pagination button {
+    margin: 2.5px;
+    width: 120px;
+    background: transparent;
+    border: 1px solid #e5e7eb;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.pagination button:disabled {
+    background-color: transparent;
+    font-weight: bold;
+    color: #ccc;
+    cursor: default;
+}
+
+.pagination button:not(:disabled):hover {
+    background-color: #f3f4f6;
+}
+
+.pagination-center {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+@media (max-width: 468px) {
+    .pagination button {
+        width: 80px;
+    }
+}

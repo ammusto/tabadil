@@ -1,6 +1,7 @@
 import React from 'react';
 import { MetadataProvider } from './contexts/MetadataContext';
 import { SearchProvider } from './contexts/SearchContext';
+import Reader from 'components/Reader';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Layout from 'components/Layout';
 import SearchPage from './components/SearchPage';
@@ -18,6 +19,7 @@ const App: React.FC = () => {
           <ToastContainer position="top-right" />
           <Layout>
             <Routes>
+              <Route path="/reader/:textId/:pageId" element={<Reader />} />
               <Route path="/about" element={<About />} />
               <Route path="/" element={<SearchPage />} />
             </Routes>

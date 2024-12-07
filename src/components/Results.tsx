@@ -6,6 +6,7 @@ import DownloadButton from './DownloadButton';
 import './Results.css';
 import Pagination from './Pagination';
 import LoadingGif from './LoadingGif';
+import { useLocation } from 'react-router-dom';
 
 const ResultHeader: React.FC<{ totalResults: number }> = ({ totalResults }) => (
   <div className="results-header">
@@ -17,9 +18,11 @@ const ResultHeader: React.FC<{ totalResults: number }> = ({ totalResults }) => (
   </div>
 );
 
+
+
 const NoResults: React.FC<{ hasSearched: boolean }> = ({ hasSearched }) => {
   if (!hasSearched) return null;
-  
+
   return (
     <div className="results-container">
       <div className="results-header center">
@@ -43,34 +46,59 @@ interface ResultItemProps {
 }
 
 const ResultItem: React.FC<ResultItemProps> = ({ result, title }) => {
-  const getUniqueHighlights = useMemo(() => {
+  const baseUrl = window.location.origin;
+  // Get both display highlights and highlighted terms
+  const { displayHighlights, highlightTerms } = useMemo(() => {
     if (!result.highlights || Object.keys(result.highlights).length === 0) {
-      return [];
+      return { displayHighlights: [], highlightTerms: '' };
     }
 
     const uniqueHighlights = new Set<string>();
     const allHighlights: string[] = [];
+    const terms = new Set<string>();
+
+    // Extract highlighted terms using DOM parser
+    const getHighlightedContent = (htmlString: string): string[] => {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(htmlString, 'text/html');
+      const highlights = Array.from(doc.querySelectorAll('span.highlight'));
+      return highlights.map(span => span.textContent || '');
+    };
 
     Object.values(result.highlights).forEach(highlights => {
       highlights.forEach(highlight => {
+        // Handle display highlights
         if (!uniqueHighlights.has(highlight)) {
           uniqueHighlights.add(highlight);
           allHighlights.push(highlight);
         }
+
+        // Extract highlighted terms
+        const highlightedTerms = getHighlightedContent(highlight);
+        highlightedTerms.forEach(term => {
+          if (term.trim()) {
+            terms.add(term.trim());
+          }
+        });
       });
     });
 
-    return allHighlights;
+    return {
+      displayHighlights: allHighlights,
+      highlightTerms: encodeURIComponent(Array.from(terms).join(','))
+    };
   }, [result.highlights]);
 
   return (
     <div className="result-item">
       <div className="result-title">
-      <a href={`https://mutun.pages.dev/text/${result.text_id}`} target="_blank" rel="noopener noreferrer"><h4>{title}</h4></a>
+        <a href={`https://mutun.pages.dev/text/${result.text_id}`} target="_blank" rel="noopener noreferrer">
+          <h4>{title}</h4>
+        </a>
       </div>
       <div className="highlights">
         <div className="highlight-group">
-          {getUniqueHighlights.map((highlight, index) => (
+          {displayHighlights.map((highlight, index) => (
             <div key={index} className="highlight">
               <span>• </span>
               <span dangerouslySetInnerHTML={{ __html: highlight }} />
@@ -80,7 +108,14 @@ const ResultItem: React.FC<ResultItemProps> = ({ result, title }) => {
       </div>
       <div className="result-page">
         <span className="page-info rtl">
-        <a href={`https://mutun.pages.dev/reader/${result.text_id}/${result.vol}/${result.page_id}`} target="_blank" rel="noopener noreferrer">{result.vol}:{result.page_num}</a>
+          <a
+            href={`${baseUrl}/reader/${result.text_id}/${result.page_id}?highlights=${highlightTerms}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {result.vol}:{result.page_num}
+          </a>
+
         </span>
       </div>
     </div>
@@ -113,24 +148,9 @@ const Results: React.FC = () => {
     window.scrollTo(0, 0);
   }, [fetchNextBatchIfNeeded, updateURLParams]);
 
-  if (isLoading) {
-    return <div><LoadingGif /></div>;
-  }
-
-  if (error) {
-    return (
-      <div className="results-container">
-        <div className="results-header center">
-          <h3>{error.message}</h3>
-        </div>
-      </div>
-    );
-  }
-
-
-  if (results.length === 0) {
-    return <NoResults hasSearched={hasSearched} />;
-  }
+  if (isLoading) return <div><LoadingGif /></div>;
+  if (error) return <div className="results-container"><div className="results-header center"><h3>{error.message}</h3></div></div>;
+  if (results.length === 0) return <NoResults hasSearched={hasSearched} />;
 
   const startIndex = (searchParams.page - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
@@ -139,7 +159,7 @@ const Results: React.FC = () => {
   return (
     <div className="results-container">
       <ResultHeader totalResults={totalResults} />
-      
+
       <div className="results-list">
         <ResultTableHeader />
         {paginatedResults.map((result, index) => (
@@ -159,7 +179,7 @@ const Results: React.FC = () => {
         maxResults={10000}
         enableKeyboardNav={true}
       />
-      
+
       <DownloadButton />
     </div>
   );
