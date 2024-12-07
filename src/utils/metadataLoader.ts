@@ -158,12 +158,10 @@ export const loadMetadata = async () => {
     // Check cache first
     const cached = await getCache();
     if (cached) {
-      console.log('Using cached metadata');
       return cached.data;
     }
 
     // If no cache or expired, load from files
-    console.log('Loading metadata from files');
     const [textsData, authorsData] = await Promise.all([
       loadExcelFile('/texts.xlsx'),
       loadExcelFile('/authors.xlsx')
