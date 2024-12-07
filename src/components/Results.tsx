@@ -6,7 +6,6 @@ import DownloadButton from './DownloadButton';
 import './Results.css';
 import Pagination from './Pagination';
 import LoadingGif from './LoadingGif';
-import { useLocation } from 'react-router-dom';
 
 const ResultHeader: React.FC<{ totalResults: number }> = ({ totalResults }) => (
   <div className="results-header">

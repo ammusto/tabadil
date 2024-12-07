@@ -12,6 +12,8 @@ export interface Text {
   text_uri: string;
   title_ar: string;
   title_lat: string;
+  ed_ar: string;
+  ed_tl:string;
   au_ids: number[];
   authors?: Author[];
   author_ar?: string;

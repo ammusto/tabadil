@@ -109,6 +109,8 @@ const processMetadata = (texts: any[], authors: any[]) => {
       text_uri: text.text_uri,
       title_ar: text.title_ar,
       title_lat: text.title_lat,
+      ed_ar: text.ed,
+      ed_tl: text.ed_tl,
       au_ids,
       authors,
       author_ar: firstAuthor?.au_ar,

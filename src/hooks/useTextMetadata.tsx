@@ -53,6 +53,8 @@ const useTextMetadata = (textId: number | undefined): TextMetadata => {
           text_uri: result.text_uri,
           title_ar: result.title_ar,
           title_lat: result.title_lat,
+          ed_ar: result.ed,
+          ed_tl: result.ed_tl,
           au_ids: result.au_ids,
           authors: result.authors || [],
           collection: result.collection,
