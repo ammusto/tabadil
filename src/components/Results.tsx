@@ -92,7 +92,7 @@ const ResultItem: React.FC<ResultItemProps> = ({ result, title }) => {
   return (
     <div className="result-item">
       <div className="result-title">
-        <a href={`https://mutun.pages.dev/text/${result.text_id}`} target="_blank" rel="noopener noreferrer">
+        <a href={`/text/${result.text_id}`} target="_blank" rel="noopener noreferrer">
           <h4>{title}</h4>
         </a>
       </div>
