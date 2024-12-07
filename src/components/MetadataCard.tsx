@@ -5,11 +5,12 @@ interface MetadataCardProps {
     text: Text;
     author?: Author | null;
     currentVolume?: string;
+    expanded: boolean;
 }
 
-const MetadataCard: React.FC<MetadataCardProps> = ({ text, author, currentVolume }) => {
-    const [isTextExpanded, setIsTextExpanded] = useState(false);
-    const [isAuthorExpanded, setIsAuthorExpanded] = useState(false);
+const MetadataCard: React.FC<MetadataCardProps> = ({ text, author, currentVolume, expanded }) => {
+    const [isTextExpanded, setIsTextExpanded] = useState(expanded);
+    const [isAuthorExpanded, setIsAuthorExpanded] = useState(expanded);
 
     return (
         <div className="metadata-cards">
@@ -24,8 +25,8 @@ const MetadataCard: React.FC<MetadataCardProps> = ({ text, author, currentVolume
                 {isTextExpanded && (
                     <div className="metadata-grid">
                         <div>
-                            <p><strong>Title (AR):</strong> {text.title_ar}</p>
-                            <p><strong>Title (LAT):</strong> {text.title_lat}</p>
+                            <p><strong>Title (ar):</strong> {text.title_ar}</p>
+                            <p><strong>Title (lat):</strong> {text.title_lat}</p>
                             <p><strong>Collection:</strong> {text.collection}</p>
                         </div>
                         <div>
@@ -54,12 +55,12 @@ const MetadataCard: React.FC<MetadataCardProps> = ({ text, author, currentVolume
                     {isAuthorExpanded && (
                         <div className="metadata-grid">
                             <div>
-                                <p><strong>Name (AR):</strong> {author.au_ar}</p>
-                                <p><strong>Short Name (AR):</strong> {author.au_sh_ar}</p>
+                                <p><strong>Name (ar):</strong> {author.au_ar}</p>
+                                <p><strong>Shuhra (ar):</strong> {author.au_sh_ar}</p>
                             </div>
                             <div>
-                                <p><strong>Name (LAT):</strong> {author.au_lat}</p>
-                                <p><strong>Short Name (LAT):</strong> {author.au_sh_lat}</p>
+                                <p><strong>Name (lat):</strong> {author.au_lat}</p>
+                                <p><strong>Shuhra (lat):</strong> {author.au_sh_lat}</p>
                             </div>
                             <div>
                                 <p><strong>Death Date:</strong> {author.au_death}</p>

@@ -199,6 +199,7 @@ const Reader: React.FC<ReaderProps> = ({
                     text={text}
                     author={author}
                     currentVolume={currentPage.vol}
+                    expanded={false}
                 />
             )}
             <div className="reader-content" dir="rtl">
