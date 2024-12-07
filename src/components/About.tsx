@@ -9,6 +9,7 @@ const About: React.FC = () => {
                     <h2>About The Project</h2>
                     <p>This tool was developped to create and search different permutations (tabdīl pl. tabādīl) of a given Arabic name using parts of the kunya and/or laqab, nasab, and nisba(s). I designed it primarily to aid in finding information about lesser-known figures. Currently, you can't search for common/simple names like like ابن تيمية and ابن عساكر. So, if you are interested in finding any mention of, say, Ibn Taymiyya, then you will be better served by using other tools, be it al-Maktaba al-Shamela or my <a href="https://mutun.pages.dev">mutūn app</a>, which is currently in early stages of testing. That being said, I'm, planning on making searches for simple names possible in a future update.</p>
                     <p>Note that nearly all of the metadata transliterations, including author names, text titles, and edition information, was done automatically via large language models (LLMs), and has yet to be cleaned. So if you notice any strange/incorrect transliterations, that is why.</p>
+                    <p>Also note that when you click on a result, it will take you to a reader view, but it will only load the page on which the name appears, the following 10 pages and the preceding 10 pages. This is not meant to be a text reader application, but instead provide context for the appearance of the individual/name.</p>
                     <h2>How to Use</h2>
                     <ul>
                         <li>Enter in two of the three: kunya (e.g. أبو منصور), multi-part nasab (e.g. معمر بن أحمد بن زياد), and nisba (e.g. الأصبهاني)</li>
@@ -31,7 +32,7 @@ const About: React.FC = () => {
                     </ul>
                     <p>Here is a list of permutations produced by the example of: أبو منصور معمر بن أحمد بن زياد الأصبهاني</p>
                 </div>
-                <div className='permuations-list'>
+                <div className='permutations-list'>
                     <ul className='right'>
                         <li>اب* منصور معمر الاصبهاني</li>
                         <li>اب* منصور معمر بن احمد</li>

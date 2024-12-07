@@ -110,7 +110,7 @@ export const generateNamePatterns = (
         addPatternVariants(`${kunyaVariant} ${nasabParts.parts[0]}`, true);
       }
 
-      // permuations of kunya + nasab, e.g. (أبو منصور معمر بن أحمد بن زياد)
+      // permutations of kunya + nasab, e.g. (أبو منصور معمر بن أحمد بن زياد)
       for (let i = 2; i <= limitedNasabParts.length; i++) {
 
         // kunya + 1st nasab + nisba 

@@ -87,13 +87,16 @@ button:hover {
   padding: 1rem;
 }
 
-.permuations-list {
+.permutations-list {
   width: 50%;
   direction: rtl;
+  padding-top:0px !important;
+
 }
 
-.permuations-list ul {
+.permutations-list ul {
   list-style-type: none;
+    margin:0px !important;
 }
 
 .red {
@@ -163,7 +166,7 @@ button:hover {
 
 @media (max-width: 768px) {
 
-  .permuations-list {
+  .permutations-list {
     width: 100%;
     direction: rtl;
   }
@@ -173,6 +176,10 @@ button:hover {
 
   .search-sidebar {
     width: 100%;
+  }
+
+  .text-content ul {
+    padding-left:1rem;
   }
 
   .search-main {

@@ -27,11 +27,12 @@ const MetadataCard: React.FC<MetadataCardProps> = ({ text, author, currentVolume
                         <div>
                             <p><strong>Title (ar):</strong> {text.title_ar}</p>
                             <p><strong>Title (lat):</strong> {text.title_lat}</p>
-                            {text.ed_ar && <p><strong>Edition Info (ar):</strong> {text.ed_ar}</p>}
+                            <p><strong>URI:</strong> {text.text_uri}</p>
+
                         </div>
                         <div>
-                            <p><strong>URI:</strong> {text.text_uri}</p>
                             <p><strong>Collection:</strong> {text.collection}</p>
+                            {text.ed_ar && <p><strong>Edition Info (ar):</strong> {text.ed_ar}</p>}
                             {text.ed_tl && <p><strong>Edition Info (lat):</strong> {text.ed_tl}</p>}
                         </div>
                         <div>
