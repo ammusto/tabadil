@@ -75,10 +75,6 @@ const SearchPage: React.FC = () => {
           <div className="search-input-section">
             {searchParams.forms.map((form) => (
               <div key={form.formId} className="search-form-wrapper">
-                {form.formId !== 'form-0' && (
-                  <div className="form-connector">
-                  </div>
-                )}
                 <SearchForm
                   showFilters={showFilters}
                   setShowFilters={setShowFilters}

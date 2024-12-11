@@ -76,6 +76,11 @@
   cursor: pointer;
 }
 
+.form-buttons {
+  flex: 1 1;
+
+}
+
 .search-form-buttons button {
   width: 100%;
 }
@@ -103,6 +108,12 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+}
+
+.add-form-button:disabled:hover {
+  background-color: rgba(239, 239, 239, 0.3);
+  border: 1px solid #ccc;
+  cursor: default;
 }
 
 .kunya-input {

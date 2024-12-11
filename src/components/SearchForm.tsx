@@ -252,36 +252,35 @@ const SearchForm: React.FC<SearchFormProps> = ({
       </div>
 
 
-      {(formId !== 'form-0' || canAdd) && (
-        <div className="form-buttons">
+      <div className="form-buttons">
+        <button
+          type="button"
+          onClick={resetForm}
+          className="reset-form-button"
+        >
+          Reset Form
+        </button>
           <button
             type="button"
-            onClick={resetForm}
-            className="reset-form-button"
+            onClick={onAdd}
+            className="add-form-button"
+            disabled={!canAdd}
           >
-            Reset Form
+            Add Name
           </button>
-          {canAdd && (
-            <button
-              type="button"
-              onClick={onAdd}
-              className="add-form-button"
-            >
-              Add Another Name
-            </button>
-          )}
-          {formId !== 'form-0' && (
-            <button
-              type="button"
-              onClick={onRemove}
-              className="remove-form-button"
-            >
-              Remove Name
-            </button>
-          )}
-        </div>
-      )}
-    </div>
+
+
+        {formId !== 'form-0' && (
+          <button
+            type="button"
+            onClick={onRemove}
+            className="remove-form-button"
+          >
+            Delete Name
+          </button>
+        )}
+      </div>
+    </div >
 
   );
 };
