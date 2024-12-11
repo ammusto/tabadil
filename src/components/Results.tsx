@@ -8,12 +8,10 @@ import Pagination from './Pagination';
 import LoadingGif from './LoadingGif';
 
 const ResultHeader: React.FC<{ totalResults: number }> = ({ totalResults }) => (
-  <div className="results-header">
-    <h4>
+  <div className="results-header center">
       {totalResults === 10000
         ? "Found 10,000+ results"
         : `Found ${totalResults.toLocaleString()} results`}
-    </h4>
   </div>
 );
 
@@ -25,7 +23,7 @@ const NoResults: React.FC<{ hasSearched: boolean }> = ({ hasSearched }) => {
   return (
     <div className="results-container">
       <div className="results-header center">
-        <h3>No Results Found</h3>
+        No Results Found
       </div>
     </div>
   );
@@ -148,7 +146,7 @@ const Results: React.FC = () => {
   }, [fetchNextBatchIfNeeded, updateURLParams]);
 
   if (isLoading) return <div><LoadingGif /></div>;
-  if (error) return <div className="results-container"><div className="results-header center"><h3>{error.message}</h3></div></div>;
+  if (error) return <div className="results-container"><div className="results-header center">{error.message}</div></div>;
   if (results.length === 0) return <NoResults hasSearched={hasSearched} />;
 
   const startIndex = (searchParams.page - 1) * itemsPerPage;

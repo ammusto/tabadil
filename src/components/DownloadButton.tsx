@@ -33,20 +33,23 @@ const DownloadButton: React.FC = () => {
 
     setIsDownloading(true);
     try {
-      const { kunyas, nasab, nisbas, allowRareKunyaNisba, allowTwoNasab, allowKunyaNasab, allowOneNasab } = searchParams;
-      const { searchPatterns, filterPatterns } = generateNamePatterns(
-        kunyas, 
-        nasab, 
-        nisbas, 
-        allowRareKunyaNisba,
-        allowTwoNasab,
-        allowKunyaNasab,
-        allowOneNasab
-      );
-
+      // Create search config with all forms
       const searchConfig: SearchConfig = {
-        patterns: searchPatterns,
-        filterPatterns,
+        forms: searchParams.forms.map(form => {
+          const { kunyas, nasab, nisbas, allowRareKunyaNisba, allowTwoNasab, allowKunyaNasab, allowOneNasabNisba, allowOneNasab, allowSingleField } = form;
+          const { searchPatterns, filterPatterns } = generateNamePatterns(
+            kunyas, 
+            nasab, 
+            nisbas, 
+            allowRareKunyaNisba,
+            allowTwoNasab,
+            allowKunyaNasab,
+            allowOneNasabNisba,
+            allowOneNasab,
+            allowSingleField
+          );
+          return { patterns: searchPatterns, filterPatterns };
+        }),
         selectedTexts: searchParams.text_ids,
         from: 0,
         size: Math.min(totalResults, MAX_RESULTS)

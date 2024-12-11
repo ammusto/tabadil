@@ -2,20 +2,8 @@ import React, { createContext, useContext, useState, useCallback, useEffect, use
 import { useLocation, useNavigate } from 'react-router-dom';
 import { searchOpenSearch } from '../utils/searchClient';
 import { generateNamePatterns } from '../utils/namePatterns';
-import { SearchResult, SearchConfig, DateRange } from '../types';
+import { SearchResult, SearchConfig, DateRange, SearchParams, FormSearchParams } from '../types';
 import { compressToRanges, decompressRanges, isValidRangeString } from '../utils/compression';
-
-interface SearchParams {
-  kunyas: string[];
-  nasab: string;
-  nisbas: string[];
-  text_ids: number[];
-  page: number;
-  allowRareKunyaNisba: boolean;
-  allowTwoNasab: boolean;
-  allowKunyaNasab: boolean;
-  allowOneNasab: boolean;
-}
 
 interface SearchContextType {
   results: SearchResult[];
@@ -31,6 +19,8 @@ interface SearchContextType {
   hasSearched: boolean;
   searchParams: SearchParams;
   updateURLParams: (params: Partial<SearchParams>) => void;
+  addSearchForm: () => void;
+  removeSearchForm: (formId: string) => void;
   fetchNextBatchIfNeeded: (page: number) => Promise<void>;
   setDateRange: (range: DateRange | null) => void;
   setHasSearched: React.Dispatch<React.SetStateAction<boolean>>;
@@ -38,6 +28,7 @@ interface SearchContextType {
   setSelectedTextIds: React.Dispatch<React.SetStateAction<number[]>>;
   setSelectedCollections: React.Dispatch<React.SetStateAction<string[]>>;
   setSelectedGenres: React.Dispatch<React.SetStateAction<string[]>>;
+  updateFormParams: (formId: string, updates: Partial<FormSearchParams>) => void;
 }
 
 const SearchContext = createContext<SearchContextType | null>(null);
@@ -45,17 +36,25 @@ const SearchContext = createContext<SearchContextType | null>(null);
 const ITEMS_PER_PAGE = 25;
 const PAGES_PER_FETCH = 10;
 const MAX_RESULTS = 10000;
+const MAX_FORMS = 4;
 
-const getEmptySearchParams = (): SearchParams => ({
-  kunyas: [],
+const createEmptyForm = (id: string): FormSearchParams => ({
+  formId: id,
+  kunyas: [''],
   nasab: '',
-  nisbas: [],
-  text_ids: [],
-  page: 1,
+  nisbas: [''],
   allowRareKunyaNisba: false,
   allowTwoNasab: false,
   allowKunyaNasab: false,
-  allowOneNasab: false
+  allowOneNasabNisba: false,
+  allowOneNasab: false,
+  allowSingleField: false,
+});
+
+const getInitialSearchParams = (): SearchParams => ({
+  forms: [createEmptyForm('form-0')],
+  text_ids: [],
+  page: 1
 });
 
 const parseUrlParams = (search: string): SearchParams => {
@@ -71,17 +70,41 @@ const parseUrlParams = (search: string): SearchParams => {
     }
   }
 
-  return {
-    kunyas: params.get('kunyas')?.split(',').filter(Boolean) || [],
-    nasab: params.get('nasab') || '',
-    nisbas: params.get('nisbas')?.split(',').filter(Boolean) || [],
-    text_ids,
-    page: parseInt(params.get('page') || '1', 10),
-    allowRareKunyaNisba: params.get('allowRareKunyaNisba') === 'true',
-    allowTwoNasab: params.get('allowTwoNasab') === 'true',
-    allowKunyaNasab: params.get('allowKunyaNasab') === 'true',
-    allowOneNasab: params.get('allowOneNasab') === 'true'
+  const forms: FormSearchParams[] = [];
+  let formIndex = 0;
 
+  while (formIndex < MAX_FORMS) {
+    const suffix = formIndex === 0 ? '' : formIndex.toString();
+    const kunyas = params.get(`kunyas${suffix}`)?.split(',').filter(Boolean) || [];
+    const nasab = params.get(`nasab${suffix}`) || '';
+    const nisbas = params.get(`nisbas${suffix}`)?.split(',').filter(Boolean) || [];
+
+    if (kunyas.length || nasab || nisbas.length) {
+      forms.push({
+        formId: `form-${formIndex}`,
+        kunyas,
+        nasab,
+        nisbas,
+        allowRareKunyaNisba: params.get(`allowRareKunyaNisba${suffix}`) === 'true',
+        allowTwoNasab: params.get(`allowTwoNasab${suffix}`) === 'true',
+        allowKunyaNasab: params.get(`allowKunyaNasab${suffix}`) === 'true',
+        allowOneNasabNisba: params.get(`allowOneNasabNisba${suffix}`) === 'true',
+        allowOneNasab: params.get(`allowOneNasab${suffix}`) === 'true',
+        allowSingleField: params.get(`allowSingleField${suffix}`) === 'true'
+      });
+    }
+    formIndex++;
+  }
+
+  // Ensure at least one form exists
+  if (forms.length === 0) {
+    forms.push(createEmptyForm('form-0'));
+  }
+
+  return {
+    forms,
+    text_ids,
+    page: parseInt(params.get('page') || '1', 10)
   };
 };
 
@@ -104,7 +127,7 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   
   // Search parameters state
-  const [searchParams, setSearchParams] = useState<SearchParams>(getEmptySearchParams);
+  const [searchParams, setSearchParams] = useState<SearchParams>(getInitialSearchParams);
   const [selectedTextIds, setSelectedTextIds] = useState<number[]>([]);
 
   const executeSearch = useCallback(async (params: SearchParams) => {
@@ -120,19 +143,21 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const from = (batchStartPage - 1) * ITEMS_PER_PAGE;
       const size = PAGES_PER_FETCH * ITEMS_PER_PAGE;
 
-      const { searchPatterns, filterPatterns } = generateNamePatterns(
-        params.kunyas,
-        params.nasab,
-        params.nisbas,
-        params.allowRareKunyaNisba,
-        params.allowTwoNasab,
-        params.allowKunyaNasab,
-        params.allowOneNasab
-      );
-
       const searchConfig: SearchConfig = {
-        patterns: searchPatterns,
-        filterPatterns,
+        forms: params.forms.map(form => {
+          const { searchPatterns, filterPatterns } = generateNamePatterns(
+            form.kunyas,
+            form.nasab,
+            form.nisbas,
+            form.allowRareKunyaNisba,
+            form.allowTwoNasab,
+            form.allowKunyaNasab,
+            form.allowOneNasabNisba,
+            form.allowOneNasab,
+            form.allowSingleField
+          );
+          return { patterns: searchPatterns, filterPatterns };
+        }),
         selectedTexts: params.text_ids,
         from,
         size,
@@ -160,6 +185,31 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   }, []);
 
+  const addSearchForm = useCallback(() => {
+    if (searchParams.forms.length >= MAX_FORMS) return;
+    
+    setSearchParams(prev => ({
+      ...prev,
+      forms: [...prev.forms, createEmptyForm(`form-${prev.forms.length}`)]
+    }));
+  }, [searchParams.forms.length]);
+
+  const removeSearchForm = useCallback((formId: string) => {
+    setSearchParams(prev => ({
+      ...prev,
+      forms: prev.forms.filter(form => form.formId !== formId)
+    }));
+  }, []);
+
+  const updateFormParams = useCallback((formId: string, updates: Partial<FormSearchParams>) => {
+    setSearchParams(prev => ({
+      ...prev,
+      forms: prev.forms.map(form => 
+        form.formId === formId ? { ...form, ...updates } : form
+      )
+    }));
+  }, []);
+
   const updateURLParams = useCallback((newParams: Partial<SearchParams>) => {
     const updatedParams = {
       ...searchParams,
@@ -169,31 +219,39 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     const params = new URLSearchParams();
     
-    if (updatedParams.kunyas.length > 0) params.append('kunyas', updatedParams.kunyas.join(','));
-    if (updatedParams.nasab) params.append('nasab', updatedParams.nasab);
-    if (updatedParams.nisbas.length > 0) params.append('nisbas', updatedParams.nisbas.join(','));
-    if (updatedParams.text_ids.length > 0) params.append('text_ids', compressToRanges(updatedParams.text_ids));
-    if (updatedParams.page !== 1) params.append('page', updatedParams.page.toString());
-    if (updatedParams.allowRareKunyaNisba) params.append('allowRareKunyaNisba', 'true');
-    if (updatedParams.allowTwoNasab) params.append('allowTwoNasab', 'true');
-    if (updatedParams.allowKunyaNasab) params.append('allowKunyaNasab', 'true');
-    if (updatedParams.allowOneNasab) params.append('allowOneNasab', 'true');
+    updatedParams.forms.forEach((form, index) => {
+      const suffix = index === 0 ? '' : index.toString();
+      if (form.kunyas.length > 0) params.append(`kunyas${suffix}`, form.kunyas.join(','));
+      if (form.nasab) params.append(`nasab${suffix}`, form.nasab);
+      if (form.nisbas.length > 0) params.append(`nisbas${suffix}`, form.nisbas.join(','));
+      if (form.allowRareKunyaNisba) params.append(`allowRareKunyaNisba${suffix}`, 'true');
+      if (form.allowTwoNasab) params.append(`allowTwoNasab${suffix}`, 'true');
+      if (form.allowKunyaNasab) params.append(`allowKunyaNasab${suffix}`, 'true');
+      if (form.allowOneNasabNisba) params.append(`allowOneNasabNisba${suffix}`, 'true');
+      if (form.allowOneNasab) params.append(`allowOneNasab${suffix}`, 'true');
+      if (form.allowSingleField) params.append(`allowSingleField${suffix}`, 'true');
+
+    });
+
+    if (updatedParams.text_ids.length > 0) {
+      params.append('text_ids', compressToRanges(updatedParams.text_ids));
+    }
+    if (updatedParams.page !== 1) {
+      params.append('page', updatedParams.page.toString());
+    }
 
     navigate({ search: params.toString() });
   }, [navigate, searchParams, selectedTextIds]);
 
-  // Handle URL changes
   useEffect(() => {
     const handleURLChange = () => {
-      // Extract search parameters
       const currentParams = parseUrlParams(location.search);
-      const hasSearchParameters = currentParams.kunyas.length > 0 || 
-                                currentParams.nasab || 
-                                currentParams.nisbas.length > 0;
+      const hasSearchParameters = currentParams.forms.some(form => 
+        form.kunyas.length > 0 || form.nasab || form.nisbas.length > 0
+      );
 
-      // Reset state when navigating to empty path
       if (!location.search) {
-        setSearchParams(getEmptySearchParams());
+        setSearchParams(getInitialSearchParams());
         setResults([]);
         setTotalResults(0);
         setHasSearched(false);
@@ -202,19 +260,15 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         return;
       }
 
-      // Ignore invalid URLs
       if (!hasSearchParameters) return;
 
-      // Generate search key excluding page
       const currentSearchKey = JSON.stringify({
         ...currentParams,
         page: undefined
       });
 
-      // Check if only the page has changed
       const searchChanged = currentSearchKey !== lastSearchKey.current;
 
-      // Update state and execute search as needed
       setSearchParams(currentParams);
 
       if (searchChanged) {
@@ -255,6 +309,9 @@ export const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         setSelectedTextIds,
         setHasSearched,
         updateURLParams,
+        addSearchForm,
+        removeSearchForm,
+        updateFormParams,
         fetchNextBatchIfNeeded,
         setDateRange,
         setSelectedCollections,

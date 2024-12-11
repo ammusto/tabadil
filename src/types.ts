@@ -44,9 +44,30 @@ export interface SearchResult {
   };
 }
 
+export interface FormSearchParams {
+  formId: string;
+  kunyas: string[];
+  nasab: string;
+  nisbas: string[];
+  allowRareKunyaNisba: boolean;
+  allowTwoNasab: boolean;
+  allowKunyaNasab: boolean;
+  allowOneNasabNisba: boolean;
+  allowOneNasab: boolean;
+  allowSingleField: boolean;
+}
+
+export interface SearchParams {
+  forms: FormSearchParams[];
+  text_ids: number[];
+  page: number;
+}
+
 export interface SearchConfig {
-  patterns: string[];
-  filterPatterns: string[];
+  forms: Array<{
+    patterns: string[];
+    filterPatterns: string[];
+  }>;
   selectedTexts: number[];
   from: number;
   size: number;

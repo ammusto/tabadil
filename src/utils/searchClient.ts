@@ -25,47 +25,23 @@ interface OpenSearchResponse {
   };
 }
 
-interface MatchQuery {
-  bool: {
-    should: [
-      {
-        match_phrase: {
-          "page_content": {
-            query: string;
-          }
-        }
-      },
-      {
-        match_phrase: {
-          "page_content.proclitic": {
-            query: string;
-          }
-        }
+const createExactMatchQuery = (pattern: string): any[] => [
+  {
+    match_phrase: {
+      "page_content": {
+        query: pattern
       }
-    ]
+    }
+  },
+  {
+    match_phrase: {
+      "page_content.proclitic": {
+        query: pattern
+      }
+    }
   }
-}
+];
 
-const createExactMatchQuery = (pattern: string): MatchQuery => ({
-  bool: {
-    should: [
-      {
-        match_phrase: {
-          "page_content": {
-            query: pattern
-          }
-        }
-      },
-      {
-        match_phrase: {
-          "page_content.proclitic": {
-            query: pattern
-          }
-        }
-      }
-    ]
-  }
-});
 
 const orderPatternsByLength = (patterns: string[]): string[] => {
   return [...patterns].sort((a, b) => b.length - a.length);
@@ -74,16 +50,29 @@ const orderPatternsByLength = (patterns: string[]): string[] => {
 export const searchOpenSearch = async (
   config: SearchConfig
 ): Promise<{ results: SearchResult[]; total: number }> => {
-  if (!config.patterns || config.patterns.length === 0) {
+  if (!config.forms || config.forms.length === 0) {
     throw new Error('Search Error: Invalid query. Please check About->How-To for valid query format.');
   }
 
-  const orderedPatterns = orderPatternsByLength(config.patterns);
-  const should = orderedPatterns.map(createExactMatchQuery);
+  // Remove forms with no patterns
+  const validForms = config.forms.filter(form => form.patterns.length > 0);
 
-  if (should.length === 0) {
-    throw new Error('Search Error: Unable to create valid search query');
+  if (validForms.length === 0) {
+    throw new Error('Search Error: No valid search patterns found');
   }
+
+  // Create must array for AND logic between forms
+  const must = validForms.map(form => {
+    const orderedPatterns = orderPatternsByLength(form.patterns);
+    const should = orderedPatterns.flatMap(pattern => createExactMatchQuery(pattern)); // Flatten the array
+  
+    return {
+      bool: {
+        should,
+        minimum_should_match: 1
+      }
+    };
+  });
 
   const headers = new Headers({
     'Authorization': 'Basic ' + btoa(`${API_USER}:${API_PASS}`),
@@ -93,10 +82,10 @@ export const searchOpenSearch = async (
   const query: any = {
     from: config.from,
     size: config.size,
+    _source: ["text_id", "page_id", "vol", "page_num", "uri"],
     query: {
       bool: {
-        should,
-        minimum_should_match: 1,
+        must,
       }
     },
     sort: [
@@ -106,7 +95,7 @@ export const searchOpenSearch = async (
       fields: {
         "page_content": {
           type: 'fvh',
-          number_of_fragments: 3,
+          number_of_fragments: 10,
           fragment_size: 200,
           pre_tags: ['<span class="highlight">'],
           post_tags: ['</span>']
@@ -132,7 +121,7 @@ export const searchOpenSearch = async (
       }
     });
   }
-
+  console.log(JSON.stringify(query))
   try {
     const response = await fetch(`${API_URL}/${API_INDEX}/_search`, {
       method: 'POST',

@@ -1,6 +1,5 @@
 import React, { useState, useCallback } from 'react';
 import { useSearch } from '../contexts/SearchContext';
-import { toast } from 'react-toastify';
 import SearchInput from './SearchInput';
 import './SearchForm.css';
 import InfoTooltip from './InfoTooltip';
@@ -8,73 +7,87 @@ import InfoTooltip from './InfoTooltip';
 interface SearchFormProps {
   showFilters: boolean;
   setShowFilters: React.Dispatch<React.SetStateAction<boolean>>;
+  formId: string;
+  isFirstForm: boolean;
+  onRemove: () => void;
+  onAdd: () => void;
+  canAdd: boolean;
 }
 
-const SearchForm: React.FC<SearchFormProps> = ({ showFilters, setShowFilters }) => {
-  const { searchParams, updateURLParams, setHasSearched, isLoading, setSelectedTextIds, setSelectedCollections,
-    setSelectedGenres, setResults } = useSearch();
+const SearchForm: React.FC<SearchFormProps> = ({
+  formId,
+  onAdd,
+  canAdd,
+  onRemove
+}) => {
+  const {
+    searchParams,
+    updateFormParams,
+  } = useSearch();
+
+  const formParams = searchParams.forms.find(f => f.formId === formId) || searchParams.forms[0];
 
   const [kunyas, setKunyas] = useState<string[]>(
-    searchParams.kunyas.length > 0 ? searchParams.kunyas : ['']
+    formParams.kunyas.length > 0 ? formParams.kunyas : ['']
   );
-  const [nasab, setNasab] = useState(searchParams.nasab);
+  const [nasab, setNasab] = useState(formParams.nasab);
   const [nisbas, setNisbas] = useState<string[]>(
-    searchParams.nisbas.length > 0 ? searchParams.nisbas : ['']
+    formParams.nisbas.length > 0 ? formParams.nisbas : ['']
   );
-  const [allowRareKunyaNisba, setAllowRareKunyaNisba] = useState(searchParams.allowRareKunyaNisba);
-  const [allowTwoNasab, setallowTwoNasab] = useState(searchParams.allowTwoNasab);
-  const [allowKunyaNasab, setAllowKunyaNasab] = useState(searchParams.allowKunyaNasab);
-  const [allowOneNasab, setAllowOneNasab] = useState(searchParams.allowOneNasab);
+  const [allowRareKunyaNisba, setAllowRareKunyaNisba] = useState(formParams.allowRareKunyaNisba);
+  const [allowTwoNasab, setAllowTwoNasab] = useState(formParams.allowTwoNasab);
+  const [allowKunyaNasab, setAllowKunyaNasab] = useState(formParams.allowKunyaNasab);
+  const [allowOneNasabNisba, setAllowOneNasabNisba] = useState(formParams.allowOneNasabNisba);
+  const [allowOneNasab, setAllowOneNasab] = useState(formParams.allowOneNasab);
 
+  const [allowSingleField, setAllowSingleField] = useState(formParams.allowSingleField);
   const tooltips = {
     kunya: "Enter the kunya or laqab, e.g. أبو منصور or قوام السنة",
     nasab: "Enter nasab with at least two names, e.g. معمر بن أحمد",
     nisba: "Enter a nisba, e.g. الأصبهاني"
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!validateInputs(kunyas, nasab, nisbas, allowRareKunyaNisba, allowTwoNasab, allowKunyaNasab, allowOneNasab)) {
-      toast.error("Please enter at least 2 of: kunya, nasab, or nisba to search");
-      return;
-    }
-
-    updateURLParams({
+  // Update form data on any change
+  const updateFormData = useCallback(() => {
+    updateFormParams(formId, {
       kunyas: kunyas.filter(Boolean),
       nasab,
       nisbas: nisbas.filter(Boolean),
       allowRareKunyaNisba,
       allowTwoNasab,
       allowKunyaNasab,
+      allowOneNasabNisba,
       allowOneNasab,
-      page: 1
+      allowSingleField
     });
-    setHasSearched(true);
-    setShowFilters(false);
-  };
-
-  const handleReset = useCallback(() => {
-    setKunyas(['']);
-    setNasab('');
-    setNisbas(['']);
-    setHasSearched(false);
-    setAllowRareKunyaNisba(false);
-    setallowTwoNasab(false);
-    setAllowKunyaNasab(false);
-    setAllowOneNasab(false);
-    setSelectedTextIds([]);
-    setSelectedCollections([]);
-    setSelectedGenres([]);
-    setResults([]);
-    setShowFilters(false);
   }, [
-    setHasSearched,
-    setResults,
-    setSelectedTextIds,
-    setSelectedCollections,
-    setSelectedGenres,
-    setShowFilters
+    formId,
+    kunyas,
+    nasab,
+    nisbas,
+    allowRareKunyaNisba,
+    allowTwoNasab,
+    allowKunyaNasab,
+    allowOneNasabNisba,
+    allowOneNasab,
+    allowSingleField,
+    updateFormParams
+  ]);
+
+  // Update form data whenever any field changes
+  React.useEffect(() => {
+    updateFormData();
+  }, [
+    kunyas,
+    nasab,
+    nisbas,
+    allowRareKunyaNisba,
+    allowTwoNasab,
+    allowKunyaNasab,
+    allowOneNasabNisba,
+    allowOneNasab,
+    allowSingleField,
+    updateFormData
   ]);
 
   const addKunya = useCallback(() => {
@@ -103,172 +116,187 @@ const SearchForm: React.FC<SearchFormProps> = ({ showFilters, setShowFilters }) 
     setNisbas(prev => prev.filter((_, i) => i !== index));
   }, []);
 
+  const resetForm = useCallback(() => {
+    setKunyas(['']);
+    setNasab('');
+    setNisbas(['']);
+    setAllowRareKunyaNisba(false);
+    setAllowTwoNasab(false);
+    setAllowKunyaNasab(false);
+    setAllowOneNasabNisba(false);
+    setAllowOneNasab(false);
+    setAllowSingleField(false);
+  }, []);
+
   return (
+
     <div className='search-form-container'>
-      <form onSubmit={handleSubmit} className="search-form">
-        <div className="input-group">
-          {kunyas.map((kunya, index) => (
-            <div key={index} className="kunya-input">
-              <SearchInput
-                value={kunya}
-                onChange={(value) => updateKunya(index, value)}
-                placeholder='كنية/لقب'
-                tooltip={index === 0 ? tooltips.kunya : undefined}
-                dir="rtl"
-              />
-              {index > 0 && (
-                <button
-                  type="button"
-                  onClick={() => removeKunya(index)}
-                  className="remove-kunya"
-                >
-                  ×
-                </button>
-              )}
-            </div>
-          ))}
-          {kunyas.length < 2 && (
-            <button type="button" onClick={addKunya} className="add-kunya">
-              Add Laqab
+
+      <div className="input-group">
+        {kunyas.map((kunya, index) => (
+          <div key={index} className="kunya-input">
+            <SearchInput
+              value={kunya}
+              onChange={(value) => updateKunya(index, value)}
+              placeholder='كنية/لقب'
+              tooltip={index === 0 ? tooltips.kunya : undefined}
+              dir="rtl"
+            />
+            {index > 0 && (
+              <button
+                type="button"
+                onClick={() => removeKunya(index)}
+                className="remove-kunya"
+              >
+                ×
+              </button>
+            )}
+          </div>
+        ))}
+        {kunyas.length < 2 && (
+          <button type="button" onClick={addKunya} className="add-kunya">
+            Add Laqab
+          </button>
+        )}
+        <div className="form-checkbox">
+          <label>
+            <input
+              type="checkbox"
+              checked={allowRareKunyaNisba}
+              onChange={(e) => setAllowRareKunyaNisba(e.target.checked)}
+            />
+            Include kunya + nisba
+          </label>
+          <InfoTooltip content="This will include a search for just the kunya and nisba, e.g. أبو منصور الأصبهاني" />
+        </div>
+        <div className="form-checkbox">
+          <label>
+            <input
+              type="checkbox"
+              checked={allowKunyaNasab}
+              onChange={(e) => setAllowKunyaNasab(e.target.checked)}
+            />
+            Include kunya + 1st nasab
+          </label>
+          <InfoTooltip content="This will include a search for just the kunya and first name in the nasab, e.g. أبو محمد أحمد" />
+        </div>
+      </div>
+
+      <div className="input-group">
+        <SearchInput
+          value={nasab}
+          onChange={setNasab}
+          placeholder="نَسَب"
+          tooltip={tooltips.nasab}
+          dir="rtl"
+        />
+        <div className="form-checkbox">
+          <label>
+            <input
+              type="checkbox"
+              checked={allowOneNasab}
+              onChange={(e) => setAllowOneNasab(e.target.checked)}
+            />
+            Include 1-part nasab
+          </label>
+          <InfoTooltip content="This will include a search for just the first name in the nasab, e.g. محمد" />
+        </div>
+        <div className="form-checkbox">
+          <label>
+            <input
+              type="checkbox"
+              checked={allowOneNasabNisba}
+              onChange={(e) => setAllowOneNasabNisba(e.target.checked)}
+            />
+            Include 1-part nasab + nisba
+          </label>
+          <InfoTooltip content="This will include a search for just the first name in the nasab and the nisba, e.g. محمد الدمشقي" />
+        </div>
+        <div className="form-checkbox">
+          <label>
+            <input
+              type="checkbox"
+              checked={allowTwoNasab}
+              onChange={(e) => setAllowTwoNasab(e.target.checked)}
+            />
+            Include 2-part nasab
+          </label>
+          <InfoTooltip content="This will include a search for just the two first names in the nasab, e.g. محمد بن أحمد" />
+        </div>
+      </div>
+
+      <div className="input-group">
+        {nisbas.map((nisba, index) => (
+          <div key={index} className="nisba-input">
+            <SearchInput
+              value={nisba}
+              onChange={(value) => updateNisba(index, value)}
+              placeholder='نسبة'
+              tooltip={index === 0 ? tooltips.nisba : undefined}
+              dir="rtl"
+            />
+            {index > 0 && (
+              <button
+                type="button"
+                onClick={() => removeNisba(index)}
+                className="remove-nisba"
+              >
+                ×
+              </button>
+            )}
+          </div>
+        ))}
+        <button type="button" onClick={addNisba} className="add-nisba">
+          Add Nisba
+        </button>
+      </div>
+
+
+      {(formId !== 'form-0' || canAdd) && (
+        <div className="form-buttons">
+          <button
+            type="button"
+            onClick={resetForm}
+            className="reset-form-button"
+          >
+            Reset Form
+          </button>
+          {canAdd && (
+            <button
+              type="button"
+              onClick={onAdd}
+              className="add-form-button"
+            >
+              Add Another Name
             </button>
           )}
-          <div className="form-checkbox">
-            <label>
-              <input
-                type="checkbox"
-                checked={allowRareKunyaNisba}
-                onChange={(e) => setAllowRareKunyaNisba(e.target.checked)}
-              />
-              Include kunya + nisba
-            </label>
-            <InfoTooltip content="This will include a search for just the kunya and nisba, e.g. أبو منصور الأصبهاني" />
-
-          </div>
+          {formId !== 'form-0' && (
+            <button
+              type="button"
+              onClick={onRemove}
+              className="remove-form-button"
+            >
+              Remove Name
+            </button>
+          )}
         </div>
-
-        <div className="input-group">
-          <SearchInput
-            value={nasab}
-            onChange={setNasab}
-            placeholder="نَسَب"
-            tooltip={tooltips.nasab}
-            dir="rtl"
-          />
-          <div className="form-checkbox">
-            <label>
-              <input
-                type="checkbox"
-                checked={allowTwoNasab}
-                onChange={(e) => setallowTwoNasab(e.target.checked)}
-              />
-              Include 2-part nasab
-
-            </label>
-            <InfoTooltip content="This will include a search for just the two first names in the nasab, e.g. محمد بن أحمد" />
-
-          </div>
-          <div className="form-checkbox">
-            <label>
-              <input
-                type="checkbox"
-                checked={allowKunyaNasab}
-                onChange={(e) => setAllowKunyaNasab(e.target.checked)}
-              />
-              Include kunya + 1st nasab
-
-            </label>
-            <InfoTooltip content="This will include a search for just the kunya and first name in the nasab, e.g. أبو محمد أحمد" />
-
-          </div>
-          <div className="form-checkbox">
-            <label>
-              <input
-                type="checkbox"
-                checked={allowOneNasab}
-                onChange={(e) => setAllowOneNasab(e.target.checked)}
-              />
-              Include 1st nasab + nisba
-
-            </label>
-            <InfoTooltip content="This will include a search for just the first name in the nasab and the nisba, e.g. محمد الدمشقي" />
-
-          </div>
-        </div>
-
-        <div className="input-group">
-          {nisbas.map((nisba, index) => (
-            <div key={index} className="nisba-input">
-              <SearchInput
-                value={nisba}
-                onChange={(value) => updateNisba(index, value)}
-                placeholder='نسبة'
-                tooltip={index === 0 ? tooltips.nisba : undefined}
-                dir="rtl"
-              />
-              {index > 0 && (
-                <button
-                  type="button"
-                  onClick={() => removeNisba(index)}
-                  className="remove-nisba"
-                >
-                  ×
-                </button>
-              )}
-            </div>
-          ))}
-          <button type="button" onClick={addNisba} className="add-nisba">
-            Add Nisba
-          </button>
-        </div>
-        <div className="search-form-buttons">
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="search-button"
-          >
-            {isLoading ? 'Loading...' : 'Search'}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setShowFilters(!showFilters)}
-            className="filter-button"
-          >
-            {showFilters ? 'Hide Filters' : 'Show Filters'}
-          </button>
-
-          <button
-            type="button"
-            onClick={handleReset}
-            className="reset-button"
-          >
-            Reset Search
-          </button>
-        </div>
-      </form>
+      )}
     </div>
+
   );
 };
 
-const validateInputs = (
-  kunyas: string[],
-  nasab: string,
-  nisbas: string[],
-  allowRare: boolean,
-  allowNasab: boolean,
-  allowKunyaNasab: boolean,
-  allowOneNasab: boolean
-): boolean => {
-  const hasKunya = kunyas.some(kunya => kunya.trim().length > 0);
-  const hasNasab = nasab.trim().length > 0;
-  const hasNisba = nisbas.some(nisba => nisba.trim().length > 0);
+// const validateInputs = (form: Omit<FormSearchParams, 'formId'>): boolean => {
+//   const hasKunya = form.kunyas.some(kunya => kunya.trim().length > 0);
+//   const hasNasab = form.nasab.trim().length > 0;
+//   const hasNisba = form.nisbas.some(nisba => nisba.trim().length > 0);
 
-  if (allowRare && allowNasab && hasKunya && hasNisba && allowKunyaNasab && allowOneNasab) {
-    return true;
-  }
+//   if (form.allowRareKunyaNisba && form.allowTwoNasab && hasKunya && hasNisba && form.allowKunyaNasab && form.allowOneNasabNisba) {
+//     return true;
+//   }
 
-  const filledInputs = [hasKunya, hasNasab, hasNisba].filter(Boolean).length;
-  return filledInputs >= 2;
-};
+//   const filledInputs = [hasKunya, hasNasab, hasNisba].filter(Boolean).length;
+//   return filledInputs >= 2;
+// };
 
 export default SearchForm;

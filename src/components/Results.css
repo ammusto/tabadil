@@ -7,7 +7,15 @@ span.highlight {
     display: flex;
     flex-direction: row;
     border-bottom: 1px solid #e5e7eb;
-    padding: 10px;
+    padding: .25rem;
+}
+
+.result-item > div {
+  padding:.25rem;
+}
+
+.results-header {
+  font-weight:bold;
 }
 
 .result-item .result-title {
@@ -36,12 +44,19 @@ span.highlight {
     box-sizing: border-box;
 }
 
-
+.search-form-buttons {
+  width:50%;
+  margin:auto;
+  flex-direction:row;
+}
 
 .results-container {
     background: white;
     border-radius: 0.5rem;
-    margin-top: 1.5rem;
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap:1rem;
 
 }
 

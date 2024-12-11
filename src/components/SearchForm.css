@@ -1,31 +1,40 @@
-.search-form {
+.search-form-container {
   display: flex;
   gap: 1rem;
   flex-wrap: wrap;
   align-items: flex-start;
   justify-content: center;
+  direction: rtl;
 }
 
-.search-form .input-group input[type="text"],
+.search-form-wrapper {
+  border-bottom:1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+}
+
+.search-form-wrapper 
+
+.search-form-container .input-group input[type="text"],
 .nisba-group input[type="text"] {
   font-size: 1.5rem;
   padding: 5px;
   text-align: center;
 }
 
-.search-form .input-group:nth-child(1) {
+.search-form-container .input-group:nth-child(1) {
   flex: 2.5;
 }
 
-.search-form .input-group:nth-child(2) {
+.search-form-container .input-group:nth-child(2) {
   flex: 4;
 }
 
-.search-form .input-group:nth-child(3) {
+.search-form-container .input-group:nth-child(3) {
   flex: 2.5;
 }
 
-.search-form .search-form-buttons {
+.search-form-container .search-form-buttons {
   flex: 1;
 }
 
@@ -71,7 +80,7 @@
   width: 100%;
 }
 
-.search-form-buttons {
+.search-form-buttons, .form-buttons {
   gap: 10px;
   display: flex;
   flex-direction: column;
@@ -79,7 +88,7 @@
 
 .search-layout {
   display: flex;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
 .search-sidebar {
@@ -111,6 +120,17 @@
   align-items: center; 
 }
 
+.search-input-section > div {
+    padding: 1rem;
+}
+
+.search-input-section .search-form-wrapper:last-child {
+  border-bottom:0px;
+}
+
+.search-input-section {
+  margin-bottom:1rem;
+}
 
 .form-checkbox .tooltip-container {
 padding-left:5px;
@@ -156,7 +176,7 @@ height:18px;
 }
 
 @media (max-width: 600px) {
-  .search-form {
+  .search-form-container {
     flex-direction: column;
   }
 
@@ -192,7 +212,7 @@ height:18px;
 }
 
 @media (max-width: 468px) {
-  .search-form {
+  .search-form-container {
     flex-direction: column;
   }
 
