@@ -47,7 +47,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
     kunya: "Enter the kunya or laqab, e.g. أبو منصور or قوام السنة",
     nasab: "Enter nasab with at least two names, e.g. معمر بن أحمد",
     nisba: "Enter a nisba, e.g. الأصبهاني",
-    shuhra: "Enter a shuhra, e.g. ابن جهضم - will add searches for المعروف ب and المشهور ب"
+    shuhra: "Enter a shuhra, e.g. أبو زرعة"
   };
 
   // Update form data on any change

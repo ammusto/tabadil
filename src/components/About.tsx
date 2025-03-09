@@ -17,6 +17,7 @@ const About: React.FC = () => {
                             <li>For the nasab, you should enter at least 2 names (e.g. أحمد بن محمد). However, if you only know the first name and at least the kunya (e.g. أبو منصور معمر), you can check the "Search Kunya + 1st nasab" box (see examples below). In it's current form the search only uses up to a 3-part nasab. So if you put in a 4-part nasab (e.g. أحمد بن محمد بن عبد الله بن فلان) it will only run permutations on the first three, i.e. أحمد بن محمد بن عبد الله</li>
                             <li>If you don't know the first name of the nasab (e.g. أم القاسم بنت محمد بن عبد الله), you can just put what you know in (e.g.  بنت محمد بن عبد الله)</li>
                             <li>You can also enter additional nisbas and/or a laqab</li>
+                            <li>You can also add a shuhra, e.g. أبو زرعة or ابن جهضم. This adds additional searches for المشهور ب and المعروف ب, e.g. المشهور بابن جهضم. Note, it will autocorret أبو to أبي, e.g. typing أبو زرعة would produce searches for المعروف بأبي زرعة and المشهور بأبي زرعة</li>
                         </ul>
                         <li>There are four checkboxes, "2-Part Nasab", "Kunya + Nisba", "Kunya + 1st Nasab," and "1st Nasab + Nisba" that are unchecked by default since they can result in a significant number of results to wade through.</li>
                         <ul>
