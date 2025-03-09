@@ -53,7 +53,8 @@ export const generateNamePatterns = (
   allowKunyaNasab: boolean = false,
   allowOneNasabNisba: boolean = false,
   allowOneNasab: boolean = false,
-  allowSingleField: boolean = false
+  allowSingleField: boolean = false,
+  shuhra: string = ''
 
 
 
@@ -222,6 +223,25 @@ export const generateNamePatterns = (
     normalizedNisbas.forEach(nisba => {
       patterns.add(`${nisba}`);
     });
+  }
+
+  // Handle shuhra patterns
+  if (shuhra && shuhra.trim()) {
+    const normalizedShuhra = normalizeArabic(shuhra.trim());
+    
+    // Check if shuhra starts with ابو or أبو
+    let shuhraValue = normalizedShuhra;
+    if (normalizedShuhra.startsWith('ابو') || normalizedShuhra.startsWith('أبو')) {
+      // Normalize to ابي form for shuhra
+      const abuMatch = normalizedShuhra.match(/^(ابو|أبو)\s+(.+)$/);
+      if (abuMatch && abuMatch[2]) {
+        shuhraValue = `ابي ${abuMatch[2]}`;
+      }
+    }
+
+    // Add the patterns with المعروف ب and المشهور ب
+    patterns.add(`المعروف ب${shuhraValue}`);
+    patterns.add(`المشهور ب${shuhraValue}`);
   }
 
   return {

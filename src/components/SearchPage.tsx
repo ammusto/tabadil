@@ -114,6 +114,7 @@ const SearchPage: React.FC = () => {
                     kunyas: [],
                     nasab: '',
                     nisbas: [],
+                    shuhra: '',
                     allowRareKunyaNisba: false,
                     allowTwoNasab: false,
                     allowKunyaNasab: false,

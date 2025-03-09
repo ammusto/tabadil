@@ -96,6 +96,10 @@
   gap: 1rem;
 }
 
+.add-nisba {
+  margin-bottom:10px;
+}
+
 .search-sidebar {
   width: 20%;
   display: flex;

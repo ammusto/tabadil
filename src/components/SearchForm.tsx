@@ -34,6 +34,8 @@ const SearchForm: React.FC<SearchFormProps> = ({
   const [nisbas, setNisbas] = useState<string[]>(
     formParams.nisbas.length > 0 ? formParams.nisbas : ['']
   );
+  const [shuhra, setShuhra] = useState(formParams.shuhra || '');
+  const [showShuhraInput, setShowShuhraInput] = useState(formParams.shuhra ? true : false);
   const [allowRareKunyaNisba, setAllowRareKunyaNisba] = useState(formParams.allowRareKunyaNisba);
   const [allowTwoNasab, setAllowTwoNasab] = useState(formParams.allowTwoNasab);
   const [allowKunyaNasab, setAllowKunyaNasab] = useState(formParams.allowKunyaNasab);
@@ -44,7 +46,8 @@ const SearchForm: React.FC<SearchFormProps> = ({
   const tooltips = {
     kunya: "Enter the kunya or laqab, e.g. أبو منصور or قوام السنة",
     nasab: "Enter nasab with at least two names, e.g. معمر بن أحمد",
-    nisba: "Enter a nisba, e.g. الأصبهاني"
+    nisba: "Enter a nisba, e.g. الأصبهاني",
+    shuhra: "Enter a shuhra, e.g. ابن جهضم - will add searches for المعروف ب and المشهور ب"
   };
 
   // Update form data on any change
@@ -53,6 +56,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
       kunyas: kunyas.filter(Boolean),
       nasab,
       nisbas: nisbas.filter(Boolean),
+      shuhra: showShuhraInput ? shuhra : '',
       allowRareKunyaNisba,
       allowTwoNasab,
       allowKunyaNasab,
@@ -65,6 +69,8 @@ const SearchForm: React.FC<SearchFormProps> = ({
     kunyas,
     nasab,
     nisbas,
+    shuhra,
+    showShuhraInput,
     allowRareKunyaNisba,
     allowTwoNasab,
     allowKunyaNasab,
@@ -81,6 +87,8 @@ const SearchForm: React.FC<SearchFormProps> = ({
     kunyas,
     nasab,
     nisbas,
+    shuhra,
+    showShuhraInput,
     allowRareKunyaNisba,
     allowTwoNasab,
     allowKunyaNasab,
@@ -116,10 +124,21 @@ const SearchForm: React.FC<SearchFormProps> = ({
     setNisbas(prev => prev.filter((_, i) => i !== index));
   }, []);
 
+  const addShuhra = useCallback(() => {
+    setShowShuhraInput(true);
+  }, []);
+
+  const removeShuhra = useCallback(() => {
+    setShuhra('');
+    setShowShuhraInput(false);
+  }, []);
+
   const resetForm = useCallback(() => {
     setKunyas(['']);
     setNasab('');
     setNisbas(['']);
+    setShuhra('');
+    setShowShuhraInput(false);
     setAllowRareKunyaNisba(false);
     setAllowTwoNasab(false);
     setAllowKunyaNasab(false);
@@ -249,8 +268,30 @@ const SearchForm: React.FC<SearchFormProps> = ({
         <button type="button" onClick={addNisba} className="add-nisba">
           Add Nisba
         </button>
+        
+        {showShuhraInput ? (
+          <div className="nisba-input">
+            <SearchInput
+              value={shuhra}
+              onChange={(value) => setShuhra(value)}
+              placeholder='شهرة'
+              tooltip={tooltips.shuhra}
+              dir="rtl"
+            />
+            <button
+              type="button"
+              onClick={removeShuhra}
+              className="remove-shuhra"
+            >
+              ×
+            </button>
+          </div>
+        ) : (
+          <button type="button" onClick={addShuhra} className="add-nisba">
+            Add Shuhra
+          </button>
+        )}
       </div>
-
 
       <div className="form-buttons">
         <button
@@ -284,6 +325,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 
   );
 };
+
 
 // const validateInputs = (form: Omit<FormSearchParams, 'formId'>): boolean => {
 //   const hasKunya = form.kunyas.some(kunya => kunya.trim().length > 0);

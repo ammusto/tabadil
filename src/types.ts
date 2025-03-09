@@ -49,6 +49,7 @@ export interface FormSearchParams {
   kunyas: string[];
   nasab: string;
   nisbas: string[];
+  shuhra: string;
   allowRareKunyaNisba: boolean;
   allowTwoNasab: boolean;
   allowKunyaNasab: boolean;
