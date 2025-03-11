@@ -28,6 +28,59 @@ const DownloadButton: React.FC = () => {
   } = useSearch();
   const [isDownloading, setIsDownloading] = useState(false);
 
+  // Function to generate a file name based on search terms
+  const generateFileName = useCallback(() => {
+    const searchTerms: string[] = [];
+    
+    // Extract key search terms from each form
+    searchParams.forms.forEach((form, index) => {
+      const formTerms: string[] = [];
+      
+      // Add kunyas
+      if (form.kunyas.length > 0) {
+        const kunyaTerm = form.kunyas.join('_');
+        if (kunyaTerm) formTerms.push(kunyaTerm);
+      }
+      
+      // Add nasab
+      if (form.nasab) {
+        // Replace spaces with underscores
+        const nasabTerm = form.nasab.replace(/\s+/g, '_');
+        formTerms.push(nasabTerm);
+      }
+      
+      // Add nisbas
+      if (form.nisbas.length > 0) {
+        const nisbaTerm = form.nisbas.join('_');
+        if (nisbaTerm) formTerms.push(nisbaTerm);
+      }
+      
+      // Add shuhra if present
+      if (form.shuhra) {
+        const shuhraTerm = form.shuhra.replace(/\s+/g, '_');
+        formTerms.push(`shuhra_${shuhraTerm}`);
+      }
+      
+      // Combine terms for this form
+      if (formTerms.length > 0) {
+        searchTerms.push(formTerms.join('-'));
+      }
+    });
+    
+    // Get current date
+    const now = new Date().toISOString().split('T')[0];
+    
+    // Create filename with search terms or default
+    let fileName = `tabadil_results_${now}`;
+    if (searchTerms.length > 0) {
+      // Limit the length of the filename to avoid excessive length
+      const searchTermsStr = searchTerms.join('_').substring(0, 100);
+      fileName = `tabadil_${searchTermsStr}_${now}`;
+    }
+    
+    return `${fileName}.xlsx`;
+  }, [searchParams.forms]);
+
   const handleDownload = useCallback(async () => {
     if (isLoading) return;
 
@@ -36,7 +89,7 @@ const DownloadButton: React.FC = () => {
       // Create search config with all forms
       const searchConfig: SearchConfig = {
         forms: searchParams.forms.map(form => {
-          const { kunyas, nasab, nisbas, allowRareKunyaNisba, allowTwoNasab, allowKunyaNasab, allowOneNasabNisba, allowOneNasab, allowSingleField } = form;
+          const { kunyas, nasab, nisbas, shuhra, allowRareKunyaNisba, allowTwoNasab, allowKunyaNasab, allowOneNasabNisba, allowOneNasab, allowSingleField } = form;
           const { searchPatterns, filterPatterns } = generateNamePatterns(
             kunyas, 
             nasab, 
@@ -46,7 +99,8 @@ const DownloadButton: React.FC = () => {
             allowKunyaNasab,
             allowOneNasabNisba,
             allowOneNasab,
-            allowSingleField
+            allowSingleField,
+            shuhra
           );
           return { patterns: searchPatterns, filterPatterns };
         }),
@@ -63,14 +117,14 @@ const DownloadButton: React.FC = () => {
 
       XLSX.utils.book_append_sheet(wb, ws, 'Search Results');
 
-      const now = new Date().toISOString().split('T')[0];
-      XLSX.writeFile(wb, `search_results_${now}.xlsx`);
+      const fileName = generateFileName();
+      XLSX.writeFile(wb, fileName);
     } catch (error) {
       console.error('Error generating download:', error);
     } finally {
       setIsDownloading(false);
     }
-  }, [isLoading, searchParams, totalResults]);
+  }, [isLoading, searchParams, totalResults, generateFileName]);
 
   const downloadCount = Math.min(totalResults, MAX_RESULTS);
 
