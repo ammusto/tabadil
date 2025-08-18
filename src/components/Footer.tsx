@@ -13,7 +13,7 @@ const Footer: React.FC = () => {
           <a href="mailto:nususcorpus@gmail.com">Report a Bug</a>
         </div>
         <div>
-          © Antonio Musto 2022
+          © Antonio Musto {new Date().getFullYear()}
         </div>
       </div>
     </footer>
